@@ -408,6 +408,7 @@
       <button class="chip" data-intent="progress">📊 How am I doing?</button>
       <button class="chip" data-intent="motivate">⚡ Motivate me</button>
       <button class="chip" data-intent="plan">🗓 Plan my day</button>
+      <button class="chip" data-intent="wizard">🧭 Help me set goals</button>
     </div>
     <form class="ask" id="ask-form">
       <input id="ask-input" type="text" placeholder="Ask the copilot… (e.g. “what's left this month?”)" autocomplete="off" aria-label="Ask the copilot" />
@@ -998,20 +999,111 @@ function freeText(q) {
   return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips above. For deeper planning, your 7am itinerary text has you covered.";
 }
 
-document.querySelectorAll(".chip").forEach(c => {
-  c.addEventListener("click", () => {
-    const i = c.getAttribute("data-intent");
-    speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
+function bindChips() {
+  document.querySelectorAll(".chip[data-intent]").forEach(c => {
+    c.addEventListener("click", () => {
+      const i = c.getAttribute("data-intent");
+      if (i === "wizard") { wizStart(false); return; }
+      speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
+    });
   });
-});
+}
+bindChips();
 document.getElementById("ask-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const inp = document.getElementById("ask-input");
   const q = inp.value.trim();
   if (!q) return;
-  speak(freeText(q));
+  if (wiz) wizAnswer(q); else speak(freeText(q));
   inp.value = "";
 });
+
+/* ---------- goal interview wizard ---------- */
+const WIZ_STEPS = [
+  { kind: "goal", hid: "year",
+    q: () => "If this year ends and you're proud of <strong>one thing</strong> — what is it? Make it concrete.",
+    ph: "e.g. Land a senior frontend role" },
+  { kind: "goal", hid: "month",
+    q: (w) => "By the end of this month, what would real progress on “<strong>" + esc(w.lastGoal || "that") + "</strong>” look like?",
+    ph: "e.g. Portfolio revamped + 30 applications out" },
+  { kind: "goal", hid: "week",
+    q: () => "The short game: what can you realistically move <strong>this week</strong>?",
+    ph: "e.g. Finish the Horizon case study" },
+  { kind: "goal", hid: "day",
+    q: () => "And the very next physical action — something finishable <strong>today or tomorrow</strong>?",
+    ph: "e.g. Draft the case study outline" },
+  { kind: "brief", bkey: "hours",
+    q: () => "Now teach your 7am planner your rhythm. What are your <strong>working hours</strong>?",
+    ph: "e.g. 9–5 weekdays" },
+  { kind: "brief", bkey: "commit",
+    q: () => "Recurring commitments it should plan around? (gym, family, classes)",
+    ph: "e.g. Gym Mon/Wed/Fri at 6pm" },
+  { kind: "brief", bkey: "energy",
+    q: () => "When is your brain at its best for <strong>deep work</strong>?",
+    ph: "e.g. Mornings before noon" },
+  { kind: "brief", bkey: "protect",
+    q: () => "Last one: anything the planner should <strong>never touch</strong>? (evenings, Sundays, lunch)",
+    ph: "e.g. Keep evenings after 8 free" },
+];
+let wiz = null;
+const coActionsEl = document.querySelector(".co-actions");
+let savedChips = null;
+
+function wizStart(auto) {
+  wiz = { i: 0, brief: {}, lastGoal: "", added: 0, auto: !!auto };
+  wizRender();
+}
+function wizRender() {
+  const step = WIZ_STEPS[wiz.i];
+  const intro = (wiz.i === 0 && wiz.auto) ? "Your board is empty — perfect, let's build it together. " : "";
+  speak("🧭 <strong>" + (wiz.i + 1) + "/" + WIZ_STEPS.length + "</strong> — " + intro + step.q(wiz) + "<br><em style='color:var(--ink-3);font-size:.85em'>Type your answer below, or skip.</em>");
+  const input = document.getElementById("ask-input");
+  input.placeholder = step.ph;
+  input.focus();
+  if (savedChips === null) savedChips = coActionsEl.innerHTML;
+  coActionsEl.innerHTML = "";
+  const mk = (label, fn) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.textContent = label;
+    b.addEventListener("click", fn); coActionsEl.appendChild(b);
+  };
+  mk("Skip this →", () => wizNext());
+  mk("✓ Finish setup", () => wizFinish());
+}
+async function wizAnswer(text) {
+  const step = WIZ_STEPS[wiz.i];
+  if (step.kind === "goal") { await addGoal(step.hid, text); wiz.lastGoal = text; wiz.added++; }
+  else wiz.brief[step.bkey] = text;
+  wizNext();
+}
+function wizNext() {
+  wiz.i++;
+  if (wiz.i >= WIZ_STEPS.length) wizFinish(); else wizRender();
+}
+async function wizFinish() {
+  const b = wiz.brief, lines = [];
+  if (b.hours) lines.push("Work hours: " + b.hours + ".");
+  if (b.commit) lines.push("Recurring commitments: " + b.commit + ".");
+  if (b.energy) lines.push("Deep work is best: " + b.energy + ".");
+  if (b.protect) lines.push("Never schedule over: " + b.protect + ".");
+  if (lines.length) {
+    const existing = (profile.context || "").trim();
+    const keep = existing && existing.length > 8 ? existing + "\n" : "";
+    profile.context = (keep + lines.join(" ")).slice(0, 4000);
+    document.getElementById("context-text").value = profile.context;
+    if (!DEMO && profile.user_id !== "demo") {
+      const { error } = await sb.from("profiles").update({ context: profile.context }).eq("user_id", profile.user_id);
+      if (error) toast("Couldn't save briefing: " + error.message);
+    }
+  }
+  const added = wiz.added, briefed = lines.length > 0;
+  wiz = null;
+  if (savedChips !== null) { coActionsEl.innerHTML = savedChips; savedChips = null; bindChips(); }
+  document.getElementById("ask-input").placeholder = "Ask the copilot… (e.g. “what's left this month?”)";
+  speak(added || briefed
+    ? "That's a real board now — <strong>" + added + " goal" + (added === 1 ? "" : "s") + "</strong> set" + (briefed ? " and your planner briefed" : "") + ". 🎉 At 7:05 tomorrow it plans your day from this. Refine anytime — the 🧭 chip reruns this."
+    : "No worries — the 🧭 chip is here whenever you want a guided setup.");
+}
 
 /* ---------- theme ---------- */
 const root = document.documentElement;
@@ -1069,7 +1161,9 @@ async function boot() {
     await loadBoard();
   }
   render();
-  speak(briefing());
+  const totalGoals = state.day.length + state.week.length + state.month.length + state.year.length;
+  if (totalGoals === 0 && !DEMO) wizStart(true);   // empty board → guided setup
+  else speak(briefing());
   setTimeout(() => root.classList.remove("booting"), 900);
 }
 </script>
