@@ -12,12 +12,17 @@ If it returns an error, stop and report the error as your output.
 
 STEP 2 — Check the calendar (optional, best-effort): if a Google Calendar tool is available (search via ToolSearch for "calendar list events"), fetch today's events and plan around them. If no calendar tool is available in this run, skip silently.
 
-STEP 3 — Plan the day:
-- profile.context is the user's standing briefing (work hours, gym days, constraints). Honor it strictly.
-- Order today's OPEN tasks into a realistic sequence with time blocks, scheduled around any calendar events found. Front-load deep work unless context says otherwise.
-- Where a day task advances a week/month/year goal, note it in a few words.
+STEP 3 — SCHEDULE THE DAY (you are the scheduler, not a formatter):
+- profile.context is the user's standing briefing (work hours, gym days, constraints). Honor it strictly. If it contains an opt-out like "don't auto-plan", skip STEP 3b.
+- 3a. Start from the user's own OPEN day tasks — they always take precedence and are never modified.
+- 3b. If the user has FEWER THAN 3 open day tasks, GENERATE concrete next actions to fill the day (total open tasks should reach 3, never exceed 4). Derive them from: week goals first, then month, then year; anything the briefing implies (habits, routines); and calendar gaps. Each generated task must be a specific, finishable-today action ("Draft the outline for X", not "work on X").
+- 3c. Write the generated tasks onto the board so they appear in the app (temp-file JSON pattern):
+curl -s -X POST "https://esithnapkqxwpsfvfwgr.supabase.co/functions/v1/board" -H "Content-Type: application/json" -H "X-Horizon-Key: <same key as above>" --data @/path/to/seed.json
+Payload: {"action": "seed_day", "items": ["task one", "task two"]}
+The endpoint dedupes and caps at 4; verify "ok":true. If seeding fails, still deliver the itinerary — just note the tasks are proposals not yet on the board.
+- 3d. Order ALL of today's open tasks (user's + generated) into a realistic sequence with time blocks around calendar events. Front-load deep work unless context says otherwise. Mark generated ones so the user knows: suffix "(proposed)" in the itinerary. Where a task advances a week/month/year goal, note it in a few words.
 - Streak: if >= 2, open with it. Otherwise fresh-start framing. Never guilt-trip.
-- If board.day is empty or all done, say so and propose up to 3 tasks from the week/month goals.
+- If the ENTIRE board is empty (no goals on any horizon), don't invent a life for the user — send a short message asking them to set goals, and stop.
 
 STEP 4 — Compose the message. Discord markdown allowed (bold with **, bullet lines). Keep under 1800 characters. Format:
 **HORIZON — {Weekday} {Mon D}**

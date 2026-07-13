@@ -1,10 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// DEPLOYED as edge function "board" (v3). Read-only board snapshot for the
-// planner tasks. Auth: X-Horizon-Key header must match HORIZON_HOOK_KEY
-// (verify_jwt off; this custom check replaces it).
-// v3: includes the 'week' horizon (Monday-anchored, matching the web app).
+// Edge function "board". v3 deployed; v4 STAGED (awaiting "push").
+// Auth: X-Horizon-Key header must match HORIZON_HOOK_KEY (verify_jwt off).
+// v4: POST {action:"seed_day", items:["..."]} inserts assistant-proposed day
+// tasks (lets the 7am planner schedule the user's day). Any other POST,
+// including empty body, returns the read-only snapshot — existing callers
+// keep working unchanged. Dedupes against existing day tasks, caps at 4.
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -47,6 +49,34 @@ Deno.serve(async (req: Request) => {
   const tz = "America/New_York";
   const { today, weekStart, monthStart, yearStart } = localDates(tz);
 
+  // Optional action payload (empty/invalid body = snapshot request)
+  let action = "", items: string[] = [];
+  try {
+    const p = await req.json();
+    action = String(p.action ?? "");
+    if (Array.isArray(p.items)) items = p.items.map((x: unknown) => String(x)).filter(Boolean);
+  } catch { /* snapshot */ }
+
+  if (action === "seed_day") {
+    if (!items.length) return json({ error: "seed_day needs non-empty items" }, 400);
+    const { data: prof, error: profErr } = await sb.from("profiles").select("user_id").limit(1);
+    if (profErr || !prof?.length) return json({ error: "no profile found to seed for" }, 500);
+    const userId = prof[0].user_id;
+    // Never exceed 4 proposed tasks; never duplicate existing day tasks
+    const { data: existing } = await sb.from("goals").select("text")
+      .eq("horizon", "day").eq("period", today);
+    const have = new Set((existing ?? []).map((g) => g.text.toLowerCase().trim()));
+    const rows = items.slice(0, 4)
+      .map((t) => t.slice(0, 200).trim())
+      .filter((t) => t && !have.has(t.toLowerCase()))
+      .map((text, i) => ({ user_id: userId, horizon: "day", period: today, text, position: (existing?.length ?? 0) + i }));
+    if (!rows.length) return json({ ok: true, seeded: 0, note: "all items already on board" });
+    const { error } = await sb.from("goals").insert(rows);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true, seeded: rows.length });
+  }
+
+  // ---- snapshot (default) ----
   // Roll unfinished day tasks forward so the plan covers them
   await sb.from("goals").update({ period: today })
     .eq("horizon", "day").eq("done", false).lt("period", today);
