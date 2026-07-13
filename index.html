@@ -228,6 +228,39 @@
   .context-saved { font-size: 0.75rem; color: var(--good); font-weight: 600; opacity: 0; transition: opacity var(--dur-mid) var(--ease-out); }
   .context-saved.show { opacity: 1; }
 
+  /* ---- insights ---- */
+  .insights {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .insights summary {
+    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 0.875rem; list-style: none;
+  }
+  .insights summary::-webkit-details-marker { display: none; }
+  .insights summary::before { content: "📈"; font-size: 0.9375rem; }
+  .insights summary .hint { font-weight: 500; font-size: 0.75rem; color: var(--ink-3); margin-left: auto; }
+  .insights-body { padding: 0 20px 18px; }
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 620px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
+    padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .stat .v { font-family: var(--font-mono); font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 0.65625rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; }
+  .wk-chart { display: flex; flex-direction: column; gap: 5px; }
+  .wk-row { display: grid; grid-template-columns: 2.2rem 1fr 1.6rem; align-items: center; gap: 8px; font-size: 0.75rem; }
+  .wk-row .d { color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+  .wk-row .bar-track { background: var(--ring-track); border-radius: 999px; height: 8px; overflow: hidden; }
+  .wk-row .bar { height: 100%; border-radius: 999px; background: var(--month); transition: width .45s var(--ease-out); }
+  .wk-row.best .bar { background: var(--gold); }
+  .wk-row .n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
+  .insights-note { font-size: 0.75rem; color: var(--ink-3); margin-top: 12px; font-style: italic; }
+
+  /* assistant-proposed marker */
+  .task-txt .prov { font-size: 0.75em; opacity: .8; cursor: help; margin-left: 4px; }
+
   /* ---- horizon grid ---- */
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   @media (max-width: 1120px) { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -426,6 +459,11 @@
         <span class="context-saved" id="context-saved">Saved ✓</span>
       </div>
     </div>
+  </details>
+
+  <details class="insights" id="insights">
+    <summary>Insights <span class="hint">your last 30 days, measured honestly</span></summary>
+    <div class="insights-body" id="insights-body"><p class="insights-note">Loading…</p></div>
   </details>
 
   <main class="grid" id="grid"></main>
@@ -740,6 +778,11 @@ function taskEl(hid, task) {
     '</div>' +
     '<div class="notes-wrap"><div class="notes-inner"><textarea placeholder="Add a note…" maxlength="2000"></textarea></div></div>';
   li.querySelector(".task-txt").textContent = task.text;
+  if (task.source === "assistant") {
+    const prov = document.createElement("span");
+    prov.className = "prov"; prov.title = "Proposed by your planner"; prov.textContent = "✨";
+    li.querySelector(".task-txt").appendChild(prov);
+  }
   li.querySelector(".check").addEventListener("click", () => toggleGoal(hid, task.id));
   li.querySelector(".del").addEventListener("click", () => removeGoal(hid, task.id));
 
@@ -1105,6 +1148,69 @@ async function wizFinish() {
     : "No worries — the 🧭 chip is here whenever you want a guided setup.");
 }
 
+/* ---------- insights ---------- */
+let insightsLoaded = false;
+document.getElementById("insights").addEventListener("toggle", (e) => {
+  if (e.target.open && !insightsLoaded) { insightsLoaded = true; loadInsights(); }
+});
+
+async function loadInsights() {
+  const body = document.getElementById("insights-body");
+  let rows;
+  if (DEMO) {
+    rows = demoInsightRows();
+  } else {
+    const since = new Date(Date.now() - 30 * 86400000).toISOString();
+    const { data, error } = await sb.from("goals")
+      .select("horizon, done, done_at, created_at")
+      .gte("created_at", since);
+    if (error) { body.innerHTML = '<p class="insights-note">Couldn&#39;t load insights: ' + esc(error.message) + '</p>'; return; }
+    rows = data ?? [];
+  }
+  renderInsights(rows);
+}
+
+function renderInsights(rows) {
+  const doneRows = rows.filter(r => r.done && r.done_at);
+  const byDay = [0, 0, 0, 0, 0, 0, 0]; // Mon..Sun
+  doneRows.forEach(r => { byDay[(new Date(r.done_at).getDay() + 6) % 7]++; });
+  const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const max = Math.max(1, ...byDay);
+  const bestIdx = byDay.indexOf(Math.max(...byDay));
+  const pct = rows.length ? Math.round(doneRows.length / rows.length * 100) : 0;
+  const tiles = [
+    { v: profile.streak, l: "day streak" },
+    { v: doneRows.length, l: "done · 30 days" },
+    { v: pct + "%", l: "completion" },
+    { v: doneRows.length ? names[bestIdx] : "—", l: "best day" },
+  ];
+  let html = '<div class="stat-row">' + tiles.map(t =>
+    '<div class="stat"><span class="v">' + t.v + '</span><span class="l">' + t.l + '</span></div>').join("") + '</div>';
+  html += '<div class="wk-chart">' + names.map((n, i) =>
+    '<div class="wk-row' + (doneRows.length && i === bestIdx ? " best" : "") + '">' +
+      '<span class="d">' + n + '</span>' +
+      '<div class="bar-track"><div class="bar" style="width:' + Math.round(byDay[i] / max * 100) + '%"></div></div>' +
+      '<span class="n">' + byDay[i] + '</span>' +
+    '</div>').join("") + '</div>';
+  html += '<p class="insights-note">' + (doneRows.length < 5
+    ? "Early days — patterns get real after a couple of weeks of data."
+    : "Completions by weekday, last 30 days. Gold = your best day.") + '</p>';
+  document.getElementById("insights-body").innerHTML = html;
+}
+
+function demoInsightRows() {
+  const rows = [];
+  const weights = [3, 4, 2, 4, 3, 1, 1]; // Mon..Sun volume
+  for (let d = 0; d < 30; d++) {
+    const date = new Date(Date.now() - d * 86400000);
+    const w = weights[(date.getDay() + 6) % 7];
+    for (let i = 0; i < w; i++) {
+      rows.push({ horizon: "day", done: Math.random() < .8, done_at: date.toISOString(), created_at: date.toISOString() });
+    }
+  }
+  return rows;
+}
+
 /* ---------- theme ---------- */
 const root = document.documentElement;
 const savedTheme = localStorage.getItem("horizon.theme");
@@ -1127,7 +1233,7 @@ function demoData() {
   const day = [
     mk("day", periodFor("day"), "Reply to the client proposal thread", true, ""),
     mk("day", periodFor("day"), "30-minute run before it gets hot", false, "Loop around the reservoir — aim for an easy pace."),
-    mk("day", periodFor("day"), "Draft the Q3 goals doc", false, "")
+    Object.assign(mk("day", periodFor("day"), "Draft the Q3 goals doc", false, ""), { source: "assistant" })
   ];
   const week = [
     mk("week", periodFor("week"), "Ship the v2 dashboard redesign", false, "Waiting on final copy from marketing before polishing empty states."),

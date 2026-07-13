@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const rows = items.slice(0, 4)
       .map((t) => t.slice(0, 200).trim())
       .filter((t) => t && !have.has(t.toLowerCase()))
-      .map((text, i) => ({ user_id: userId, horizon, period, text, position: (existing?.length ?? 0) + i }));
+      .map((text, i) => ({ user_id: userId, horizon, period, text, position: (existing?.length ?? 0) + i, source: "assistant" }));
     if (!rows.length) return json({ ok: true, seeded: 0, note: "all items already on board" });
     const { error } = await sb.from("goals").insert(rows);
     if (error) return json({ error: error.message }, 500);
