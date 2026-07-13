@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horizon — Goal Command Center</title>
+<style>
+  :root {
+    --ground: #12101B; --panel: #1B1830; --panel-2: #241F3B;
+    --line: #322B4E; --line-soft: #29244099;
+    --ink: #F3F0FF; --ink-2: #B8B2D6; --ink-3: #7E789C;
+    --day: #FF6A3D; --day-soft: #FF6A3D22;
+    --month: #8B5CFF; --month-soft: #8B5CFF22;
+    --year: #17C4A6; --year-soft: #17C4A622;
+    --gold: #FFC43D;
+    --good: #2FBF71; --warn: #FFB020; --crit: #FF5470;
+    --ring-track: #2A2542;
+    --shadow: 0 18px 50px -20px rgba(0,0,0,.7);
+    --radius: 18px;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-hover: ease;
+    --dur-fast: 130ms; --dur-mid: 200ms; --dur-slow: 260ms;
+    --bar-bg: rgba(27, 24, 48, 0.62);
+    --font-display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #FBF7F0; --panel: #FFFFFF; --panel-2: #F6F1FF;
+      --line: #E7E0F2; --line-soft: #EEE8F8;
+      --ink: #1A1626; --ink-2: #575075; --ink-3: #948DAE;
+      --day-soft: #FF6A3D18; --month-soft: #8B5CFF18; --year-soft: #17C4A618;
+      --ring-track: #EAE4F5;
+      --shadow: 0 20px 44px -24px rgba(60,40,110,.35);
+      --bar-bg: rgba(255, 255, 255, 0.62);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#12101B;--panel:#1B1830;--panel-2:#241F3B;--line:#322B4E;--line-soft:#29244099;
+    --ink:#F3F0FF;--ink-2:#B8B2D6;--ink-3:#7E789C;--day-soft:#FF6A3D22;--month-soft:#8B5CFF22;
+    --year-soft:#17C4A622;--ring-track:#2A2542;--shadow:0 18px 50px -20px rgba(0,0,0,.7);
+    --bar-bg:rgba(27,24,48,.62);
+  }
+  :root[data-theme="light"] {
+    --ground:#FBF7F0;--panel:#FFFFFF;--panel-2:#F6F1FF;--line:#E7E0F2;--line-soft:#EEE8F8;
+    --ink:#1A1626;--ink-2:#575075;--ink-3:#948DAE;--day-soft:#FF6A3D18;--month-soft:#8B5CFF18;
+    --year-soft:#17C4A618;--ring-track:#EAE4F5;--shadow:0 20px 44px -24px rgba(60,40,110,.35);
+    --bar-bg:rgba(255,255,255,.62);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1100px 520px at 88% -8%, var(--month-soft), transparent 60%),
+      radial-gradient(900px 460px at 4% 4%, var(--day-soft), transparent 55%),
+      var(--ground);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 22px 64px; }
+
+  /* ---- auth gate ---- */
+  .auth {
+    min-height: 100vh; display: grid; place-items: center; padding: 22px;
+  }
+  .auth-card {
+    width: 100%; max-width: 400px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 32px 28px; box-shadow: var(--shadow); text-align: center;
+  }
+  .auth-card .logo { font-size: 38px; margin-bottom: 4px; }
+  .auth-card p { color: var(--ink-2); font-size: 14px; line-height: 1.5; margin: 10px 0 22px; }
+  .auth-card form { display: flex; flex-direction: column; gap: 10px; }
+  .auth-card input {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 12px 14px; font-size: 15px; font-family: var(--font-body);
+  }
+  .auth-card input:focus { outline: none; border-color: var(--month); }
+  .auth-card button {
+    border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
+    font-weight: 700; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 15px;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .auth-card button:active { transform: scale(.97); }
+  .auth-note { font-size: 12.5px !important; color: var(--ink-3) !important; margin-top: 16px !important; }
+  .auth-sent { color: var(--good); font-weight: 600; font-size: 14.5px; }
+
+  /* ---- command bar ---- */
+  .bar {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+    position: sticky; top: 10px; z-index: 10;
+    background: var(--bar-bg);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid var(--line-soft); border-radius: 16px;
+    padding: 10px 16px;
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .bar { background: var(--panel); } }
+  @media (prefers-reduced-transparency: reduce) { .bar { background: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+  @media (prefers-contrast: more) { .bar { background: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--ink-3); } }
+
+  .brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 28px; letter-spacing: -.03em; line-height: 1;
+    background: linear-gradient(100deg, var(--day), var(--month) 55%, var(--year));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { font-size: 11px; color: var(--ink-3); letter-spacing: .12em; text-transform: uppercase; }
+  .bar-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .datechip { display:flex; flex-direction:column; align-items:flex-end; line-height:1.15; }
+  .datechip .d { font-weight: 700; font-size: 14px; }
+  .datechip .s { font-size: 11px; color: var(--ink-3); letter-spacing:.08em; text-transform:uppercase; }
+  .streak {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 7px 12px; border-radius: 999px;
+  }
+  .streak .flame { font-size: 16px; }
+  .streak .n { font-family: var(--font-mono); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--gold); }
+  .streak .lbl { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing:.08em; }
+  .tbtn {
+    display: grid; place-items: center; width: 38px; height: 38px;
+    border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
+    color: var(--ink); cursor: pointer; font-size: 16px;
+    transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-hover);
+  }
+  @media (hover: hover) and (pointer: fine) { .tbtn:hover { transform: translateY(-2px); border-color: var(--month); } }
+  .tbtn:active { transform: scale(.94); }
+  .tbtn:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+  .signout { font-size: 11.5px; color: var(--ink-3); background: none; border: none; cursor: pointer; text-decoration: underline; }
+  .signout:hover { color: var(--crit); }
+
+  /* ---- copilot ---- */
+  .copilot {
+    position: relative; overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow);
+  }
+  .copilot::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(var(--day), var(--month), var(--year));
+  }
+  .co-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+  .co-orb {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 32% 30%, #fff6, transparent 45%), conic-gradient(from 210deg, var(--day), var(--month), var(--year), var(--day));
+    box-shadow: 0 0 0 3px var(--month-soft);
+    animation: spin 9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .co-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .co-name span { color: var(--ink-3); font-weight: 500; font-size: 12px; letter-spacing:.04em; margin-left: 6px; }
+  .co-msg { font-size: 15.5px; line-height: 1.5; color: var(--ink); margin: 2px 0 14px; max-width: 74ch; }
+  .co-msg strong { color: var(--gold); font-weight: 700; }
+  .co-msg .h-day { color: var(--day); font-weight: 700; }
+  .co-msg .h-month { color: var(--month); font-weight: 700; }
+  .co-msg .h-year { color: var(--year); font-weight: 700; }
+  .co-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    padding: 7px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; letter-spacing: .01em;
+    transition: color var(--dur-fast) var(--ease-hover), border-color var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .chip:hover { color: var(--ink); border-color: var(--month); transform: translateY(-1px); } }
+  .chip:active { transform: scale(.96); }
+  .chip:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+  .ask { display: flex; gap: 8px; margin-top: 12px; }
+  .ask input {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 999px; padding: 9px 16px; font-size: 13.5px; font-family: var(--font-body); min-width: 0;
+  }
+  .ask input::placeholder { color: var(--ink-3); }
+  .ask input:focus { outline: none; border-color: var(--month); }
+  .ask button {
+    border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
+    font-weight: 700; padding: 0 18px; border-radius: 999px; cursor: pointer; font-size: 13.5px;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .ask button:active { transform: scale(.96); }
+  .ask button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ---- assistant briefing (context) ---- */
+  .context {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .context summary {
+    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 14px; list-style: none;
+  }
+  .context summary::-webkit-details-marker { display: none; }
+  .context summary::before { content: "📡"; font-size: 15px; }
+  .context summary .hint { font-weight: 500; font-size: 12px; color: var(--ink-3); margin-left: auto; }
+  .context-body { padding: 0 20px 18px; }
+  .context-body p { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0 0 10px; max-width: 78ch; }
+  .context-body textarea {
+    width: 100%; min-height: 96px; resize: vertical;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 11px 13px; font-size: 13.5px; font-family: var(--font-body); line-height: 1.5;
+  }
+  .context-body textarea:focus { outline: none; border-color: var(--month); }
+  .context-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .context-actions button {
+    border: none; background: var(--month); color: #fff; font-weight: 700; font-size: 13px;
+    padding: 8px 18px; border-radius: 999px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .context-actions button:active { transform: scale(.96); }
+  .context-saved { font-size: 12px; color: var(--good); font-weight: 600; opacity: 0; transition: opacity var(--dur-mid) var(--ease-out); }
+  .context-saved.show { opacity: 1; }
+
+  /* ---- horizon grid ---- */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .col { --c: var(--month); --c-soft: var(--month-soft);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 18px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .col.day { --c: var(--day); --c-soft: var(--day-soft); }
+  .col.month { --c: var(--month); --c-soft: var(--month-soft); }
+  .col.year { --c: var(--year); --c-soft: var(--year-soft); }
+  .col::after { content:""; position:absolute; inset:0 0 auto 0; height:3px; background: var(--c); opacity:.9; }
+
+  .col-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .col-title { display: flex; flex-direction: column; gap: 3px; }
+  .col-eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--c); font-weight: 700; }
+  .col-name { font-family: var(--font-display); font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
+  .col-sub { font-size: 11.5px; color: var(--ink-3); }
+
+  .ring-wrap { position: relative; width: 62px; height: 62px; flex: none; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-wrap .pct {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--c);
+  }
+
+  .list { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-direction: column; gap: 7px; min-height: 30px; }
+  .task {
+    display: flex; align-items: center; gap: 11px; padding: 10px 11px;
+    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
+    transition: background var(--dur-fast) var(--ease-hover), opacity var(--dur-mid) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .task:hover { background: var(--c-soft); } }
+  .task.enter { animation: taskIn var(--dur-mid) var(--ease-out); }
+  @keyframes taskIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+  .check {
+    width: 21px; height: 21px; border-radius: 7px; border: 2px solid var(--c); flex: none;
+    cursor: pointer; display: grid; place-items: center; background: transparent; padding: 0;
+    transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .check:active { transform: scale(.9); }
+  .check svg { width: 12px; height: 12px; opacity: 0; transform: scale(.5);
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+  .task.done .check { background: var(--c); }
+  .task.done .check svg { opacity: 1; transform: scale(1); }
+  .check:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .task-txt { flex: 1; font-size: 14px; line-height: 1.35; color: var(--ink); word-break: break-word; }
+  .task.done .task-txt { color: var(--ink-3); text-decoration: line-through; }
+  .del {
+    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
+    font-size: 17px; line-height: 1; padding: 2px 4px; border-radius: 6px; opacity: 0;
+    transition: color var(--dur-fast) var(--ease-hover), opacity var(--dur-fast) var(--ease-out);
+  }
+  .task:hover .del, .del:focus-visible { opacity: 1; }
+  .del:hover { color: var(--crit); }
+  @media (hover: none) { .del { opacity: .55; } }
+
+  .empty { font-size: 13px; color: var(--ink-3); padding: 12px 4px; text-align: center; font-style: italic; }
+
+  .add { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
+  .add input {
+    flex: 1; background: transparent; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 9px 12px; font-size: 13.5px; font-family: var(--font-body); min-width: 0;
+  }
+  .add input::placeholder { color: var(--ink-3); }
+  .add input:focus { outline: none; border-color: var(--c); }
+  .add button {
+    border: none; background: var(--c); color: #fff; font-weight: 700; font-size: 18px;
+    width: 38px; border-radius: 10px; cursor: pointer; flex: none; line-height: 1;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .add button:active { transform: scale(.9); }
+  .add button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .col-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 11.5px; color: var(--ink-3); }
+  .col-foot b { color: var(--c); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  footer { margin-top: 30px; text-align: center; font-size: 12px; color: var(--ink-3); line-height: 1.6; }
+
+  /* toast for sync errors */
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
+    background: var(--panel); color: var(--ink); border: 1px solid var(--crit);
+    border-radius: 12px; padding: 11px 18px; font-size: 13.5px; box-shadow: var(--shadow);
+    transition: transform var(--dur-slow) var(--ease-out); z-index: 50; max-width: 90vw;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .booting .col, .booting .copilot, .booting .context { animation: rise .5s var(--ease-out) both; }
+  .booting .col.month { animation-delay: .06s; }
+  .booting .col.year { animation-delay: .12s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .booting .col, .booting .copilot, .booting .context, .task.enter { animation: none; }
+    .co-orb { animation: none; }
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="logo auth-logo" style="font-family:var(--font-display);font-weight:800;letter-spacing:-.03em;background:linear-gradient(100deg,var(--day),var(--month) 55%,var(--year));-webkit-background-clip:text;background-clip:text;color:transparent;">Horizon</div>
+    <p>Your goal command center. Sign in with your email — a magic link does the rest.</p>
+    <form id="auth-form">
+      <input id="auth-email" type="email" required placeholder="you@example.com" autocomplete="email" aria-label="Email address" />
+      <button type="submit" id="auth-btn">Send magic link</button>
+    </form>
+    <p class="auth-note" id="auth-note">No password. The link signs you in on this device.</p>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="bar">
+    <div class="brand">
+      <div class="logo">Horizon</div>
+      <div class="tagline">Goal Command Center</div>
+    </div>
+    <div class="bar-meta">
+      <div class="datechip"><span class="d" id="today-d">—</span><span class="s" id="today-s"></span></div>
+      <div class="streak" title="Consecutive days you cleared every task in Today">
+        <span class="flame">🔥</span>
+        <span class="n" id="streak-n">0</span>
+        <span class="lbl">day streak</span>
+      </div>
+      <button class="tbtn" id="theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+      <button class="signout" id="signout">sign out</button>
+    </div>
+  </header>
+
+  <section class="copilot" aria-live="polite">
+    <div class="co-head">
+      <div class="co-orb" aria-hidden="true"></div>
+      <div class="co-name">Copilot <span>reads your live board</span></div>
+    </div>
+    <p class="co-msg" id="co-msg">Loading your board…</p>
+    <div class="co-actions">
+      <button class="chip" data-intent="focus">🎯 What should I focus on?</button>
+      <button class="chip" data-intent="progress">📊 How am I doing?</button>
+      <button class="chip" data-intent="motivate">⚡ Motivate me</button>
+      <button class="chip" data-intent="plan">🗓 Plan my day</button>
+    </div>
+    <form class="ask" id="ask-form">
+      <input id="ask-input" type="text" placeholder="Ask the copilot… (e.g. “what's left this month?”)" autocomplete="off" aria-label="Ask the copilot" />
+      <button type="submit">Ask</button>
+    </form>
+  </section>
+
+  <details class="context">
+    <summary>Assistant briefing <span class="hint">what your 7am planner knows about you</span></summary>
+    <div class="context-body">
+      <p>Your daily itinerary text is planned from this. Describe your routine, constraints, and preferences — e.g. <em>“I work 9–5. Gym Mon/Wed/Fri at 6pm. Deep work is best before noon. Keep evenings free.”</em></p>
+      <textarea id="context-text" placeholder="Tell your assistant how your days actually work…"></textarea>
+      <div class="context-actions">
+        <button id="context-save">Save briefing</button>
+        <span class="context-saved" id="context-saved">Saved ✓</span>
+      </div>
+    </div>
+  </details>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    Synced to your Horizon account — same board on every device. Your assistant texts your itinerary at 7am from this data.
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://esithnapkqxwpsfvfwgr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ciB1R_0CjkGZfaJ-Ss2huA_Gw7GDxxD";
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const HORIZONS = [
+  { id: "day",   eyebrow: "Right now",   name: "Today",      sub: "clear it, keep the streak" },
+  { id: "month", eyebrow: "This cycle",  name: "This Month", sub: "the medium game" },
+  { id: "year",  eyebrow: "The long arc", name: "This Year", sub: "who you're becoming" }
+];
+
+let state = { day: [], month: [], year: [] };
+let profile = { streak: 0, last_complete: null, context: "" };
+let lastPct = { day: 0, month: 0, year: 0 };
+let justAddedId = null;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- dates (local timezone) ---------- */
+function localYMD(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function periodFor(h) {
+  const d = new Date();
+  if (h === "day") return localYMD(d);
+  if (h === "month") return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-01";
+  return d.getFullYear() + "-01-01";
+}
+function daysBetween(a, b) {
+  return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+}
+
+/* ---------- toast ---------- */
+const toastEl = document.getElementById("toast");
+let toastTimer;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 4200);
+}
+
+/* ---------- auth ---------- */
+const authView = document.getElementById("auth");
+const appView = document.getElementById("app");
+
+sb.auth.onAuthStateChange((_event, session) => {
+  if (session) { authView.hidden = true; appView.hidden = false; boot(); }
+  else { appView.hidden = true; authView.hidden = false; }
+});
+
+document.getElementById("auth-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("auth-email").value.trim();
+  if (!email) return;
+  const btn = document.getElementById("auth-btn");
+  btn.disabled = true; btn.textContent = "Sending…";
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+  if (error) {
+    btn.disabled = false; btn.textContent = "Send magic link";
+    document.getElementById("auth-note").textContent = "Couldn't send: " + error.message;
+  } else {
+    btn.textContent = "Link sent";
+    document.getElementById("auth-note").innerHTML = '<span class="auth-sent">Check your email and open the link on this device.</span>';
+  }
+});
+
+document.getElementById("signout").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  booted = false;
+});
+
+/* ---------- data ---------- */
+async function loadBoard() {
+  const today = periodFor("day");
+  // roll unfinished day tasks forward to today
+  const { error: rollErr } = await sb.from("goals")
+    .update({ period: today })
+    .eq("horizon", "day").eq("done", false).lt("period", today);
+  if (rollErr) toast("Couldn't roll tasks forward: " + rollErr.message);
+
+  const [g, p] = await Promise.all([
+    sb.from("goals").select("*")
+      .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.month,period.eq.${periodFor("month")}),and(horizon.eq.year,period.eq.${periodFor("year")})`)
+      .order("created_at", { ascending: true }),
+    sb.from("profiles").select("*").maybeSingle()
+  ]);
+
+  if (g.error) { toast("Couldn't load your board: " + g.error.message); return; }
+  state = { day: [], month: [], year: [] };
+  for (const row of g.data) state[row.horizon]?.push(row);
+
+  if (p.error) { toast("Couldn't load profile: " + p.error.message); }
+  else if (p.data) profile = p.data;
+  else {
+    const ins = await sb.from("profiles").insert({}).select().single();
+    if (!ins.error) profile = ins.data;
+  }
+  // lapsed streak?
+  if (profile.last_complete && daysBetween(profile.last_complete, today) >= 2 && profile.streak !== 0) {
+    profile.streak = 0;
+    sb.from("profiles").update({ streak: 0 }).eq("user_id", profile.user_id).then(() => {});
+  }
+  document.getElementById("context-text").value = profile.context || "";
+}
+
+async function addGoal(hid, text) {
+  text = text.trim();
+  if (!text) return;
+  const { data, error } = await sb.from("goals")
+    .insert({ horizon: hid, period: periodFor(hid), text })
+    .select().single();
+  if (error) { toast("Couldn't add: " + error.message); return; }
+  state[hid].push(data);
+  justAddedId = data.id;
+  render();
+  justAddedId = null;
+}
+
+async function toggleGoal(hid, id) {
+  const t = state[hid].find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  t.done_at = t.done ? new Date().toISOString() : null;
+  render(); speak(afterAction(hid, t));
+  const { error } = await sb.from("goals").update({ done: t.done, done_at: t.done_at }).eq("id", id);
+  if (error) { t.done = !t.done; render(); toast("Couldn't save: " + error.message); return; }
+  if (hid === "day") await maybeAdvanceStreak();
+}
+
+async function removeGoal(hid, id) {
+  const prev = state[hid];
+  state[hid] = prev.filter(x => x.id !== id);
+  render();
+  const { error } = await sb.from("goals").delete().eq("id", id);
+  if (error) { state[hid] = prev; render(); toast("Couldn't delete: " + error.message); }
+}
+
+async function maybeAdvanceStreak() {
+  const today = periodFor("day");
+  const day = state.day;
+  const allDone = day.length > 0 && day.every(x => x.done);
+  if (!allDone || profile.last_complete === today) return;
+  profile.streak = (profile.last_complete && daysBetween(profile.last_complete, today) === 1) ? profile.streak + 1 : 1;
+  profile.last_complete = today;
+  document.getElementById("streak-n").textContent = profile.streak;
+  const { error } = await sb.from("profiles")
+    .update({ streak: profile.streak, last_complete: today })
+    .eq("user_id", profile.user_id);
+  if (error) toast("Couldn't save streak: " + error.message);
+  speak("🔥 <strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Your 7am text tomorrow will know it.");
+}
+
+/* ---------- context (assistant briefing) ---------- */
+document.getElementById("context-save").addEventListener("click", async () => {
+  const val = document.getElementById("context-text").value.slice(0, 4000);
+  const { error } = await sb.from("profiles").update({ context: val }).eq("user_id", profile.user_id);
+  if (error) { toast("Couldn't save briefing: " + error.message); return; }
+  profile.context = val;
+  const saved = document.getElementById("context-saved");
+  saved.classList.add("show");
+  setTimeout(() => saved.classList.remove("show"), 2200);
+});
+
+/* ---------- stats & render ---------- */
+function stat(k) {
+  const arr = state[k], total = arr.length, done = arr.filter(x => x.done).length;
+  return { total, done, pct: total ? Math.round(done / total * 100) : 0, left: total - done };
+}
+
+const grid = document.getElementById("grid");
+
+function render() {
+  renderDate();
+  document.getElementById("streak-n").textContent = profile.streak;
+  grid.innerHTML = "";
+  HORIZONS.forEach(h => {
+    const s = stat(h.id);
+    const col = document.createElement("section");
+    col.className = "col " + h.id;
+    const C = 2 * Math.PI * 26;
+    const newOff = C * (1 - s.pct / 100);
+    const startOff = reduceMotion ? newOff : C * (1 - lastPct[h.id] / 100);
+    lastPct[h.id] = s.pct;
+
+    col.innerHTML =
+      '<div class="col-head">' +
+        '<div class="col-title">' +
+          '<span class="col-eyebrow">' + h.eyebrow + '</span>' +
+          '<span class="col-name">' + h.name + '</span>' +
+          '<span class="col-sub">' + h.sub + '</span>' +
+        '</div>' +
+        '<div class="ring-wrap">' +
+          '<svg width="62" height="62" viewBox="0 0 62 62">' +
+            '<circle cx="31" cy="31" r="26" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle>' +
+            '<circle cx="31" cy="31" r="26" fill="none" stroke="var(--c)" stroke-width="6" stroke-linecap="round" ' +
+              'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + startOff.toFixed(1) + '" style="transition:stroke-dashoffset .45s var(--ease-out)"></circle>' +
+          '</svg>' +
+          '<span class="pct">' + s.pct + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<ul class="list"></ul>' +
+      '<form class="add" data-add="' + h.id + '">' +
+        '<input type="text" placeholder="Add a ' + (h.id === "day" ? "task for today" : "goal") + '…" aria-label="Add to ' + h.name + '" maxlength="200" autocomplete="off" />' +
+        '<button type="submit" aria-label="Add">+</button>' +
+      '</form>' +
+      '<div class="col-foot"><span>' + (s.total ? s.done + " of " + s.total + " done" : "nothing here yet") + '</span><b>' + s.left + ' left</b></div>';
+
+    grid.appendChild(col);
+
+    if (!reduceMotion && startOff !== newOff) {
+      const ring = col.querySelectorAll("circle")[1];
+      requestAnimationFrame(() => requestAnimationFrame(() => { ring.style.strokeDashoffset = newOff.toFixed(1); }));
+    }
+
+    const ul = col.querySelector("ul");
+    if (!s.total) ul.innerHTML = '<li class="empty">Add your first ' + (h.id === "day" ? "task" : "goal") + ' below ✦</li>';
+    else state[h.id].forEach(task => ul.appendChild(taskEl(h.id, task)));
+  });
+}
+
+function taskEl(hid, task) {
+  const li = document.createElement("li");
+  li.className = "task" + (task.done ? " done" : "") + (task.id === justAddedId ? " enter" : "");
+  li.innerHTML =
+    '<button class="check" aria-label="' + (task.done ? "Mark not done" : "Mark done") + '" aria-pressed="' + task.done + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>' +
+    '</button>' +
+    '<span class="task-txt"></span>' +
+    '<button class="del" aria-label="Delete task" title="Delete">×</button>';
+  li.querySelector(".task-txt").textContent = task.text;
+  li.querySelector(".check").addEventListener("click", () => toggleGoal(hid, task.id));
+  li.querySelector(".del").addEventListener("click", () => removeGoal(hid, task.id));
+  return li;
+}
+
+function renderDate() {
+  const d = new Date();
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  document.getElementById("today-d").textContent = days[d.getDay()];
+  document.getElementById("today-s").textContent = mon[d.getMonth()] + " " + d.getDate() + " · " + d.getFullYear();
+}
+
+grid.addEventListener("submit", (e) => {
+  if (e.target.matches("form[data-add]")) {
+    e.preventDefault();
+    const input = e.target.querySelector("input");
+    addGoal(e.target.getAttribute("data-add"), input.value);
+    input.value = "";
+    input.focus();
+  }
+});
+
+/* ---------- copilot ---------- */
+const coMsg = document.getElementById("co-msg");
+function speak(html) {
+  coMsg.innerHTML = html;
+  if (!reduceMotion && coMsg.animate) {
+    coMsg.animate(
+      [{ opacity: 0.25, filter: "blur(3px)" }, { opacity: 1, filter: "blur(0px)" }],
+      { duration: 190, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+    );
+  }
+}
+const HNAME = { day: '<span class="h-day">Today</span>', month: '<span class="h-month">This Month</span>', year: '<span class="h-year">This Year</span>' };
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Burning the midnight oil";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 22) return "Good evening";
+  return "Winding down";
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function afterAction(hid, task) {
+  if (task.done) {
+    const s = stat(hid);
+    if (s.left === 0 && hid !== "day") return "That's all of " + HNAME[hid] + " done. Serious momentum. 🎉";
+    if (s.left > 0) return "Nice — checked off in " + HNAME[hid] + ". <strong>" + s.left + "</strong> to go.";
+    return "Today's board is clear — checking your streak…";
+  }
+  return "Reopened in " + HNAME[hid] + " — no problem, progress isn't always linear.";
+}
+
+function briefing() {
+  const d = stat("day"), m = stat("month"), y = stat("year");
+  const parts = [greeting() + ". "];
+  if (d.total === 0) parts.push("Your " + HNAME.day + " board is empty — set 1–3 tasks so tomorrow's 7am text has something to plan around.");
+  else if (d.left === 0) parts.push("<strong>Today is already clear</strong> — all " + d.total + " done. Streak: <strong>" + profile.streak + "</strong>.");
+  else {
+    parts.push("You've got <strong>" + d.left + "</strong> of " + d.total + " left in " + HNAME.day + ". ");
+    const next = state.day.find(t => !t.done);
+    if (next) parts.push("Start with “<strong>" + esc(next.text) + "</strong>.”");
+  }
+  if (m.total && m.pct >= 80 && m.left > 0) parts.push(" " + HNAME.month + " is " + m.pct + "% there — one push finishes it.");
+  if (y.total === 0) parts.push(" And no " + HNAME.year + " goals yet — worth naming what this year is really about.");
+  return parts.join("");
+}
+
+function focusAns() {
+  for (const k of ["day", "month", "year"]) {
+    const next = state[k].find(t => !t.done);
+    if (next) {
+      const s = stat(k);
+      return "Focus here: “<strong>" + esc(next.text) + "</strong>” in " + HNAME[k] + ". " +
+        (k === "day" ? "It's the nearest horizon — clearing " + HNAME.day + " protects your streak. " : "") +
+        s.left + " item" + (s.left === 1 ? "" : "s") + " left there. One thing at a time.";
+    }
+  }
+  return "Everything on the board is done. 🌟 Either rest, or set the next goal for one of your horizons.";
+}
+
+function progressAns() {
+  const d = stat("day"), m = stat("month"), y = stat("year");
+  const line = (label, s, cls) => !s.total ? `<span class='${cls}'>${label}</span>: empty`
+    : `<span class='${cls}'>${label}</span>: <strong>${s.pct}%</strong> (${s.done}/${s.total})`;
+  return "Here's the read — " + line("Today", d, "h-day") + " · " + line("Month", m, "h-month") + " · " + line("Year", y, "h-year") +
+    ". Streak sitting at <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>.";
+}
+
+const PEP = [
+  "Small, boring, consistent action beats a big burst you can't repeat. Do the next thing.",
+  "You don't have to feel motivated — you have to check one box. Motivation usually shows up after.",
+  "The version of you a year from now is built by what you do in the next hour. Pick one task.",
+  "Discipline is just remembering what you actually want. What did you say this year was about?",
+  "Done imperfectly beats planned perfectly. Ship the messy first draft of today.",
+  "A streak is only ever one day long. Win today; tomorrow takes care of itself."
+];
+function motivateAns() {
+  const d = stat("day");
+  let base = PEP[Math.floor(Math.random() * PEP.length)];
+  if (profile.streak >= 3) base = "🔥 <strong>" + profile.streak + " days</strong> straight — that's not luck, that's identity. Don't break the chain today. " + base;
+  else if (d.left > 0) base += " You have <strong>" + d.left + "</strong> waiting in " + HNAME.day + ".";
+  return base;
+}
+
+function planAns() {
+  const open = state.day.filter(t => !t.done);
+  if (!open.length) return "Nothing open in " + HNAME.day + " to plan. Add 1–3 tasks — ideally one that moves a " + HNAME.month + " goal. Your real itinerary arrives by text at 7am.";
+  const lines = open.slice(0, 5).map((t, i) => (i + 1) + ". " + esc(t.text));
+  return "A simple order for " + HNAME.day + " — hardest first while your energy's fresh:<br>" + lines.join("<br>") +
+    (open.length > 5 ? "<br>…and " + (open.length - 5) + " more. Consider moving some to " + HNAME.month + "." : "");
+}
+
+function freeText(q) {
+  q = q.toLowerCase();
+  if (/(focus|priorit|next|what.*do|start)/.test(q)) return focusAns();
+  if (/(how.*doing|progress|status|stats|percent|%|report)/.test(q)) return progressAns();
+  if (/(motivat|stuck|tired|lazy|pep|encourage|inspir|hard)/.test(q)) return motivateAns();
+  if (/(plan|order|schedule|organi)/.test(q)) return planAns();
+  if (/(month|monthly)/.test(q)) { const m = stat("month"); return HNAME.month + ": <strong>" + m.pct + "%</strong>, " + m.left + " of " + m.total + " left."; }
+  if (/(year|yearly|annual)/.test(q)) { const y = stat("year"); return y.total ? HNAME.year + ": <strong>" + y.pct + "%</strong>, " + y.left + " left. Long game — keep chipping." : "No " + HNAME.year + " goals set yet."; }
+  if (/(today|day|daily)/.test(q)) { const dd = stat("day"); return HNAME.day + ": " + (dd.total ? dd.done + "/" + dd.total + " done, " + dd.left + " left." : "empty — add a task."); }
+  if (/(streak|chain|fire)/.test(q)) return "Your streak is <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. It grows each day you clear <em>every</em> task in " + HNAME.day + ".";
+  if (/(text|sms|itinerary|7am|morning)/.test(q)) return "Every morning at 7am your assistant reads this board and your briefing, plans your day, and texts you the itinerary. Keep the briefing (📡 panel above) current for better plans.";
+  if (/(hi|hey|hello|yo|sup)\b/.test(q)) return greeting() + "! Ask me what to focus on, how you're doing, or say “motivate me.”";
+  if (/(help|what can you|command)/.test(q)) return "I read your board and can: pick your <strong>focus</strong>, report <strong>progress</strong>, <strong>plan</strong> your day, or give you a <strong>pep talk</strong>. The smarter planning happens in your 7am text.";
+  if (/(thank|thx|cheers)/.test(q)) return "Anytime. Now go check a box. ✅";
+  return "I can talk <span class='h-day'>focus</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips above. For deeper planning, your 7am itinerary text has you covered.";
+}
+
+document.querySelectorAll(".chip").forEach(c => {
+  c.addEventListener("click", () => {
+    const i = c.getAttribute("data-intent");
+    speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
+  });
+});
+document.getElementById("ask-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const inp = document.getElementById("ask-input");
+  const q = inp.value.trim();
+  if (!q) return;
+  speak(freeText(q));
+  inp.value = "";
+});
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+const savedTheme = localStorage.getItem("horizon.theme");
+if (savedTheme) root.setAttribute("data-theme", savedTheme);
+document.getElementById("theme").addEventListener("click", () => {
+  let cur = root.getAttribute("data-theme");
+  if (!cur) cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const next = cur === "dark" ? "light" : "dark";
+  root.setAttribute("data-theme", next);
+  try { localStorage.setItem("horizon.theme", next); } catch (e) {}
+});
+
+/* ---------- boot ---------- */
+let booted = false;
+async function boot() {
+  if (booted) return;
+  booted = true;
+  root.classList.add("booting");
+  await loadBoard();
+  render();
+  speak(briefing());
+  setTimeout(() => root.classList.remove("booting"), 900);
+}
+</script>
+</body>
+</html>
