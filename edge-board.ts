@@ -50,30 +50,40 @@ Deno.serve(async (req: Request) => {
   const { today, weekStart, monthStart, yearStart } = localDates(tz);
 
   // Optional action payload (empty/invalid body = snapshot request)
-  let action = "", items: string[] = [];
+  let action = "", items: string[] = [], reqHorizon = "", reqPeriod = "";
   try {
     const p = await req.json();
     action = String(p.action ?? "");
     if (Array.isArray(p.items)) items = p.items.map((x: unknown) => String(x)).filter(Boolean);
+    reqHorizon = String(p.horizon ?? "");
+    reqPeriod = String(p.period ?? "");
   } catch { /* snapshot */ }
 
-  if (action === "seed_day") {
-    if (!items.length) return json({ error: "seed_day needs non-empty items" }, 400);
+  if (action === "seed_day" || action === "seed") {
+    // "seed_day" = legacy alias for {action:"seed", horizon:"day"}.
+    // "seed" accepts optional horizon (day|week|month|year, default day) and
+    // optional period (YYYY-MM-DD, e.g. next Monday for Sunday-night weekly
+    // planning; defaults to the current period for that horizon).
+    if (!items.length) return json({ error: "seed needs non-empty items" }, 400);
+    const horizon = (action === "seed" && ["day", "week", "month", "year"].includes(reqHorizon)) ? reqHorizon : "day";
+    const defaults: Record<string, string> = { day: today, week: weekStart, month: monthStart, year: yearStart };
+    let period = defaults[horizon];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(reqPeriod)) period = reqPeriod;
     const { data: prof, error: profErr } = await sb.from("profiles").select("user_id").limit(1);
     if (profErr || !prof?.length) return json({ error: "no profile found to seed for" }, 500);
     const userId = prof[0].user_id;
-    // Never exceed 4 proposed tasks; never duplicate existing day tasks
+    // Never exceed 4 proposed items; never duplicate existing ones in the target period
     const { data: existing } = await sb.from("goals").select("text")
-      .eq("horizon", "day").eq("period", today);
+      .eq("horizon", horizon).eq("period", period);
     const have = new Set((existing ?? []).map((g) => g.text.toLowerCase().trim()));
     const rows = items.slice(0, 4)
       .map((t) => t.slice(0, 200).trim())
       .filter((t) => t && !have.has(t.toLowerCase()))
-      .map((text, i) => ({ user_id: userId, horizon: "day", period: today, text, position: (existing?.length ?? 0) + i }));
+      .map((text, i) => ({ user_id: userId, horizon, period, text, position: (existing?.length ?? 0) + i }));
     if (!rows.length) return json({ ok: true, seeded: 0, note: "all items already on board" });
     const { error } = await sb.from("goals").insert(rows);
     if (error) return json({ error: error.message }, 500);
-    return json({ ok: true, seeded: rows.length });
+    return json({ ok: true, seeded: rows.length, horizon, period });
   }
 
   // ---- snapshot (default) ----
