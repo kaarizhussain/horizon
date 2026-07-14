@@ -10,6 +10,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // sync_todays_habits SQL function — see migrations-3-pending.sql) before
 // reading goals, so habit-sourced tasks always appear whichever surface
 // calls board first each day (app open, bot /board, or the 7am planner).
+// v6 (STAGED): profile now also returns deep_work_target_hours (nullable —
+// null/absent means the feature is off). See migrations-4-pending.sql.
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -107,7 +109,7 @@ Deno.serve(async (req: Request) => {
     sb.from("goals").select("horizon, text, done, notes, period, source, estimate_min")
       .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.week,period.eq.${weekStart}),and(horizon.eq.month,period.eq.${monthStart}),and(horizon.eq.year,period.eq.${yearStart})`)
       .order("created_at", { ascending: true }),
-    sb.from("profiles").select("streak, last_complete, context").limit(1),
+    sb.from("profiles").select("streak, last_complete, context, deep_work_target_hours").limit(1),
   ]);
 
   if (goals.error) return json({ error: goals.error.message }, 500);
@@ -124,6 +126,6 @@ Deno.serve(async (req: Request) => {
     date: today,
     timezone: tz,
     board,
-    profile: profiles.data?.[0] ?? { streak: 0, last_complete: null, context: "" },
+    profile: profiles.data?.[0] ?? { streak: 0, last_complete: null, context: "", deep_work_target_hours: null },
   });
 });
