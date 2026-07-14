@@ -44,20 +44,27 @@ Full list: `PUSH-CHECKLIST.md`. Ships as soon as you say the word.
 Both fully staged in `migrations-3-pending.sql` + `edge-board.ts` v7 +
 `edge-discord-bot.ts` + `index.html` — see `PUSH-CHECKLIST.md`.
 
-## Phase 2 — protection + reporting
+## Phase 2 — protection + reporting — STAGED, built 2026-07-14 night
 
 3. **Deep-work protection** (Motion's Meeting Defender / Reclaim's Focus
-   Time) — set a weekly deep-work-hours target in the briefing; the planner
-   defends that time in the itinerary and calls out when the calendar is
-   eating it. Reuses the existing read-only calendar check — no new plumbing.
-4. **Sunday digest** — pair the already-staged weekly planning message with a
-   numbers-first recap (done vs. planned, best day, streak) ahead of the
-   "next week" proposal. Reuses the Insights query.
+   Time). Built: `profiles.deep_work_target_hours` (migrations-4-pending.sql),
+   weekly-hours field in the Assistant Briefing panel, board.ts returns it,
+   7am prompt reserves a protected block ahead of filler tasks and calls out
+   when the week's calendar is crowding the target. Demo-verified.
+4. **Sunday digest**. Built: `board` v7 read-only `{action:"recap"}` branch
+   (7-day done/total, best weekday, streak — same shape as the app's own
+   Insights aggregation), `prompt-sunday-planning.md` opens with the numbers
+   before the qualitative wins/slipped review. Code-review verified (no live
+   scheduled-prompt run possible without violating the no-live-infra rule).
+
+Both staged in full — see `PUSH-CHECKLIST.md`.
 
 ## Phase 3 — always-on + integrations
 
-5. **pg_cron fallback** (`ALWAYS-ON.md` option D) — free, closes the
-   "laptop must be open" gap proven twice already.
+5. **pg_cron fallback** (`ALWAYS-ON.md` option D) — STAGED 2026-07-14 in
+   `migrations-5-pending.sql`. Free, closes the "laptop must be open" gap
+   proven twice already. Needs one manual Vault-secret step at push time
+   (see `PUSH-CHECKLIST.md`).
 6. **Third-party import** (Sunsama connects to 9 tools) — lowest priority for
    personal use, highest value if/when Horizon becomes the portfolio piece:
    start with one (Google Tasks or GitHub issues) as a proof of concept, not
@@ -77,6 +84,8 @@ Both fully staged in `migrations-3-pending.sql` + `edge-board.ts` v7 +
 
 ## Sequencing note
 
-Phase 1 is now staged in full (both items). Recommended next: Phase 2 item 3
-(deep-work protection) — it's the next-highest-frequency competitor feature
-and reuses the calendar read already wired into the 7am planner.
+Phases 1-3 item 5 are all staged in full now. Nothing is deployed — see
+`PUSH-CHECKLIST.md` for the full manifest. Recommended next after your next
+"push": Phase 3 item 6 (third-party import) or item 7 (GitHub Actions +
+Claude API) — both are genuinely new plumbing rather than extensions of
+existing patterns, worth doing with you in the loop rather than overnight.
