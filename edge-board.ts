@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const defaults: Record<string, string> = { day: today, week: weekStart, month: monthStart, year: yearStart };
     let period = defaults[horizon];
     if (/^\d{4}-\d{2}-\d{2}$/.test(reqPeriod)) period = reqPeriod;
-    const { data: prof, error: profErr } = await sb.from("profiles").select("user_id").limit(1);
+    const { data: prof, error: profErr } = await sb.from("profiles").select("user_id").order("created_at", { ascending: true }).limit(1);
     if (profErr || !prof?.length) return json({ error: "no profile found to seed for" }, 500);
     const userId = prof[0].user_id;
     // Never exceed 4 proposed items; never duplicate existing ones in the target period
@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     // Read-only 7-day summary for the Sunday planner. Same shape as the
     // app's Insights aggregation (done vs. total, best weekday), windowed
     // to the closing week instead of 30 days.
-    const { data: prof1 } = await sb.from("profiles").select("user_id, streak").limit(1);
+    const { data: prof1 } = await sb.from("profiles").select("user_id, streak").order("created_at", { ascending: true }).limit(1);
     const userId1 = prof1?.[0]?.user_id;
     if (!userId1) return json({ error: "no profile found" }, 500);
     const since = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // ---- snapshot (default) ----
-  const { data: prof0 } = await sb.from("profiles").select("user_id").limit(1);
+  const { data: prof0 } = await sb.from("profiles").select("user_id").order("created_at", { ascending: true }).limit(1);
   const userId = prof0?.[0]?.user_id;
 
   // Materialize today's due recurring habits as day-goals before reading.
@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
     sb.from("goals").select("horizon, text, done, notes, period, source, estimate_min")
       .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.week,period.eq.${weekStart}),and(horizon.eq.month,period.eq.${monthStart}),and(horizon.eq.year,period.eq.${yearStart})`)
       .order("created_at", { ascending: true }),
-    sb.from("profiles").select("streak, last_complete, context, deep_work_target_hours").limit(1),
+    sb.from("profiles").select("streak, last_complete, context, deep_work_target_hours").order("created_at", { ascending: true }).limit(1),
   ]);
 
   if (goals.error) return json({ error: goals.error.message }, 500);

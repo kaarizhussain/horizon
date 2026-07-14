@@ -67,7 +67,7 @@ async function maybeAdvanceStreak(sb: Sb, today: string) {
   const { all } = await openDayTasks(sb, today);
   const allDone = all.length > 0 && all.every((t: { done: boolean }) => t.done);
   if (!allDone) return null;
-  const { data: prof } = await sb.from("profiles").select("user_id, streak, last_complete").limit(1);
+  const { data: prof } = await sb.from("profiles").select("user_id, streak, last_complete").order("created_at", { ascending: true }).limit(1);
   if (!prof?.length || prof[0].last_complete === today) return null;
   const p = prof[0];
   const streak = (p.last_complete && daysBetween(p.last_complete, today) === 1) ? p.streak + 1 : 1;
@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
   // day list — matches board.ts, keeps /board, /done, /skip consistent
   // whichever surface the user opens first this morning.
   {
-    const { data: prof } = await sb.from("profiles").select("user_id").limit(1);
+    const { data: prof } = await sb.from("profiles").select("user_id").order("created_at", { ascending: true }).limit(1);
     if (prof?.length) {
       const { error } = await sb.rpc("sync_todays_habits", { p_today: today, p_user_id: prof[0].user_id });
       if (error) console.error("sync_todays_habits failed:", error.message); // non-fatal
@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
     const text = (opt("text") ?? "").trim().slice(0, 200);
     if (!text) return reply("What should I add? `/add text: call the dentist`");
     const horizon = ["day", "week", "month", "year"].includes(opt("horizon") ?? "") ? opt("horizon")! : "day";
-    const { data: prof } = await sb.from("profiles").select("user_id").limit(1);
+    const { data: prof } = await sb.from("profiles").select("user_id").order("created_at", { ascending: true }).limit(1);
     if (!prof?.length) return reply("No profile found — sign in to the app once first.");
     const { error } = await sb.from("goals").insert({
       user_id: prof[0].user_id, horizon, period: periodFor(horizon, today), text,
