@@ -13,7 +13,7 @@
 -- migration enables the two missing extensions.
 
 create extension if not exists pg_cron;
-create extension if not exists pg_net;
+create extension if not exists pg_net with schema extensions; -- linter: extensions belong out of public
 
 -- 1. The fallback itself. SECURITY DEFINER is deliberate here (unlike
 --    sync_todays_habits/bump_habit_streak, which are SECURITY INVOKER by
@@ -59,7 +59,7 @@ begin
     return;
   end if;
 
-  select user_id into v_user_id from public.profiles limit 1;
+  select user_id into v_user_id from public.profiles order by created_at asc limit 1;
   if v_user_id is null then
     return;
   end if;
@@ -105,6 +105,13 @@ select cron.schedule(
   '*/15 * * * *',
   $$select public.horizon_fallback_check_and_send();$$
 );
+
+-- This function must only ever run from pg_cron's internal scheduler, never
+-- the public REST API — Postgres grants EXECUTE to PUBLIC by default on new
+-- functions, which combined with SECURITY DEFINER means anon/authenticated
+-- could otherwise call /rest/v1/rpc/horizon_fallback_check_and_send directly.
+-- Caught by get_advisors after first applying this migration; fixed here.
+revoke execute on function public.horizon_fallback_check_and_send() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- Your step at push time (Claude cannot do this — it's a live secret):
