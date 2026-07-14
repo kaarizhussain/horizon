@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Edge function "board". v3 deployed; v4/v5 STAGED (awaiting "push").
+// Edge function "board". v3 deployed; v4-v7 STAGED (awaiting "push").
 // Auth: X-Horizon-Key header must match HORIZON_HOOK_KEY (verify_jwt off).
 // v4: POST {action:"seed_day"|"seed", items:["..."]} inserts assistant-
 // proposed goals (lets planners schedule the user's day/week/month). Any
@@ -12,6 +12,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // calls board first each day (app open, bot /board, or the 7am planner).
 // v6 (STAGED): profile now also returns deep_work_target_hours (nullable —
 // null/absent means the feature is off). See migrations-4-pending.sql.
+// v7 (STAGED): POST {action:"recap"} returns a read-only 7-day summary
+// (done vs. total, pct, best weekday, current streak) for the Sunday
+// planner's numbers-first recap. Same aggregation shape as the app's
+// Insights panel (loadInsights/renderInsights in index.html), just windowed
+// to 7 days instead of 30. No new secret/auth path — reuses X-Horizon-Key.
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -89,6 +94,37 @@ Deno.serve(async (req: Request) => {
     const { error } = await sb.from("goals").insert(rows);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, seeded: rows.length, horizon, period });
+  }
+
+  if (action === "recap") {
+    // Read-only 7-day summary for the Sunday planner. Same shape as the
+    // app's Insights aggregation (done vs. total, best weekday), windowed
+    // to the closing week instead of 30 days.
+    const { data: prof1 } = await sb.from("profiles").select("user_id, streak").limit(1);
+    const userId1 = prof1?.[0]?.user_id;
+    if (!userId1) return json({ error: "no profile found" }, 500);
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data: rows, error: rErr } = await sb.from("goals")
+      .select("done, done_at, created_at")
+      .eq("user_id", userId1)
+      .gte("created_at", since);
+    if (rErr) return json({ error: rErr.message }, 500);
+    const total = rows?.length ?? 0;
+    const doneRows = (rows ?? []).filter((r) => r.done && r.done_at);
+    const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const byDay = [0, 0, 0, 0, 0, 0, 0];
+    doneRows.forEach((r) => { byDay[(new Date(r.done_at as string).getUTCDay() + 6) % 7]++; });
+    const bestIdx = doneRows.length ? byDay.indexOf(Math.max(...byDay)) : -1;
+    return json({
+      ok: true,
+      since,
+      total,
+      done: doneRows.length,
+      pct: total ? Math.round(doneRows.length / total * 100) : 0,
+      best_day: bestIdx >= 0 ? names[bestIdx] : null,
+      by_weekday: Object.fromEntries(names.map((n, i) => [n, byDay[i]])),
+      streak: prof1[0].streak ?? 0,
+    });
   }
 
   // ---- snapshot (default) ----
