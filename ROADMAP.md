@@ -25,19 +25,24 @@ Goal interview wizard · Insights panel · goal provenance (✨) · two-way Disc
 bot · Sunday weekly planning · monthly decomposition · generalized seed action.
 Full list: `PUSH-CHECKLIST.md`. Ships as soon as you say the word.
 
-## Phase 1 — close the two biggest competitive gaps
+## Phase 1 — close the two biggest competitive gaps — STAGED, built 2026-07-13 night
 
 1. **Recurring habits as a first-class type** (matches Reclaim Habits /
-   TickTick habit tracker — the most-repeated feature across every competitor
-   researched). A goal gets `recurring: {freq, days}`; the planner stops
-   regenerating "workout" from scratch each morning and instead tracks a
-   per-habit streak alongside the daily streak. Natural extension of the
-   `source` provenance column already staged.
-2. **Time estimate vs. actual** (Sunsama's signature feature). Optional
-   estimate on a task; `done_at - created_at`-adjacent actual captured
-   automatically. Feeds Insights: "you estimate 30 min, it's usually 90" —
-   turns the panel predictive instead of descriptive, and lets the planner
-   stop overpacking days.
+   TickTick habit tracker). Built: `habits` table (freq: daily/weekdays/
+   custom-days, its own `streak`/`best_streak`), `sync_todays_habits()`
+   materializes due habits onto Today from whichever surface asks first
+   (app, bot, or the 7am planner), a `bump_habit_streak()` trigger keeps
+   per-habit streak logic in one place instead of three. In-app 🔁 Habits
+   panel to add/pause/delete. Verified in demo mode: add/pause/delete,
+   custom day picker, 🔁 marker on habit-sourced tasks.
+2. **Time estimate vs. actual** (Sunsama's signature feature). Built:
+   `estimate_min` column, inline capture next to notes, ⏱ badge on the task.
+   Insights shows actual-vs-estimate ratio once ≥3 same-day samples exist,
+   with a plain-English verdict ("you tend to underestimate — plan ~40% more
+   time"). Verified in demo mode.
+
+Both fully staged in `migrations-3-pending.sql` + `edge-board.ts` v7 +
+`edge-discord-bot.ts` + `index.html` — see `PUSH-CHECKLIST.md`.
 
 ## Phase 2 — protection + reporting
 
@@ -72,7 +77,6 @@ Full list: `PUSH-CHECKLIST.md`. Ships as soon as you say the word.
 
 ## Sequencing note
 
-Phase 1 item 1 (recurring habits) is the recommended next build after the
-current push ships — it's the highest-frequency competitor feature, lowest
-new-infrastructure cost, and most directly reduces the manual-input problem
-that started this whole project.
+Phase 1 is now staged in full (both items). Recommended next: Phase 2 item 3
+(deep-work protection) — it's the next-highest-frequency competitor feature
+and reuses the calendar read already wired into the 7am planner.

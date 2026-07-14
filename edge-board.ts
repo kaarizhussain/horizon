@@ -1,12 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Edge function "board". v3 deployed; v4 STAGED (awaiting "push").
+// Edge function "board". v3 deployed; v4/v5 STAGED (awaiting "push").
 // Auth: X-Horizon-Key header must match HORIZON_HOOK_KEY (verify_jwt off).
-// v4: POST {action:"seed_day", items:["..."]} inserts assistant-proposed day
-// tasks (lets the 7am planner schedule the user's day). Any other POST,
-// including empty body, returns the read-only snapshot — existing callers
-// keep working unchanged. Dedupes against existing day tasks, caps at 4.
+// v4: POST {action:"seed_day"|"seed", items:["..."]} inserts assistant-
+// proposed goals (lets planners schedule the user's day/week/month). Any
+// other POST, including empty body, returns the read-only snapshot.
+// v5: the snapshot also materializes today's due recurring habits (via the
+// sync_todays_habits SQL function — see migrations-3-pending.sql) before
+// reading goals, so habit-sourced tasks always appear whichever surface
+// calls board first each day (app open, bot /board, or the 7am planner).
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -87,12 +90,21 @@ Deno.serve(async (req: Request) => {
   }
 
   // ---- snapshot (default) ----
+  const { data: prof0 } = await sb.from("profiles").select("user_id").limit(1);
+  const userId = prof0?.[0]?.user_id;
+
+  // Materialize today's due recurring habits as day-goals before reading.
+  if (userId) {
+    const { error: syncErr } = await sb.rpc("sync_todays_habits", { p_today: today, p_user_id: userId });
+    if (syncErr) console.error("sync_todays_habits failed:", syncErr.message); // non-fatal — snapshot still returns
+  }
+
   // Roll unfinished day tasks forward so the plan covers them
   await sb.from("goals").update({ period: today })
     .eq("horizon", "day").eq("done", false).lt("period", today);
 
   const [goals, profiles] = await Promise.all([
-    sb.from("goals").select("horizon, text, done, notes, period")
+    sb.from("goals").select("horizon, text, done, notes, period, source, estimate_min")
       .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.week,period.eq.${weekStart}),and(horizon.eq.month,period.eq.${monthStart}),and(horizon.eq.year,period.eq.${yearStart})`)
       .order("created_at", { ascending: true }),
     sb.from("profiles").select("streak, last_complete, context").limit(1),
@@ -102,7 +114,10 @@ Deno.serve(async (req: Request) => {
 
   const board: Record<string, unknown[]> = { day: [], week: [], month: [], year: [] };
   for (const g of goals.data ?? []) {
-    (board[g.horizon] as unknown[])?.push({ text: g.text, done: g.done, notes: g.notes ?? undefined });
+    (board[g.horizon] as unknown[])?.push({
+      text: g.text, done: g.done, notes: g.notes ?? undefined,
+      source: g.source, estimate_min: g.estimate_min ?? undefined,
+    });
   }
 
   return json({

@@ -258,8 +258,70 @@
   .wk-row .n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
   .insights-note { font-size: 0.75rem; color: var(--ink-3); margin-top: 12px; font-style: italic; }
 
-  /* assistant-proposed marker */
+  /* assistant/habit-proposed marker + estimate badge */
   .task-txt .prov { font-size: 0.75em; opacity: .8; cursor: help; margin-left: 4px; }
+  .task-txt .est { font-size: 0.75em; color: var(--ink-3); font-weight: 600; margin-left: 5px; font-variant-numeric: tabular-nums; }
+  .notes-inner .est-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .notes-inner .est-row label { font-size: 0.75rem; color: var(--ink-3); }
+  .notes-inner .est-row input {
+    width: 4.5rem; background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; padding: 6px 8px; font-size: 0.8125rem; font-family: var(--font-body);
+  }
+  .notes-inner .est-row input:focus { outline: none; border-color: var(--c); }
+
+  /* ---- habits ---- */
+  .habits {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .habits summary {
+    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 0.875rem; list-style: none;
+  }
+  .habits summary::-webkit-details-marker { display: none; }
+  .habits summary::before { content: "🔁"; font-size: 0.9375rem; }
+  .habits summary .hint { font-weight: 500; font-size: 0.75rem; color: var(--ink-3); margin-left: auto; }
+  .habits-body { padding: 0 20px 18px; }
+  .habits-body > p { font-size: 0.8125rem; color: var(--ink-2); line-height: 1.5; margin: 0 0 12px; max-width: 78ch; }
+  .habit-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .habit-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
+  }
+  .habit-row.paused { opacity: .55; }
+  .habit-row .h-text { flex: 1; font-size: 0.84375rem; }
+  .habit-row .h-freq { font-size: 0.6875rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+  .habit-row .h-streak { font-size: 0.75rem; color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .habit-row button {
+    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
+    font-size: 0.9375rem; padding: 3px 5px; border-radius: 6px;
+    transition: color var(--dur-fast) var(--ease-hover);
+  }
+  .habit-row button:hover { color: var(--month); }
+  .habit-row button.h-del:hover { color: var(--crit); }
+  .habit-form { display: flex; flex-direction: column; gap: 8px; }
+  .habit-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .habit-form input[type="text"] {
+    flex: 1; min-width: 10rem; background: transparent; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 9px 12px; font-size: 0.84375rem; font-family: var(--font-body);
+  }
+  .habit-form select {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 9px 10px; font-size: 0.8125rem; font-family: var(--font-body);
+  }
+  .habit-form button[type="submit"] {
+    border: none; background: var(--month); color: #fff; font-weight: 700; font-size: 0.8125rem;
+    padding: 9px 16px; border-radius: 999px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .habit-form button[type="submit"]:active { transform: scale(.96); }
+  .day-picker { display: flex; gap: 5px; }
+  .day-picker button {
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    width: 2rem; height: 2rem; border-radius: 8px; font-size: 0.6875rem; font-weight: 700; cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
+  }
+  .day-picker button.on { background: var(--month); border-color: var(--month); color: #fff; }
 
   /* ---- horizon grid ---- */
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
@@ -461,6 +523,26 @@
     </div>
   </details>
 
+  <details class="habits" id="habits-panel">
+    <summary>Habits <span class="hint">recurring, tracked with their own streak</span></summary>
+    <div class="habits-body">
+      <p>A habit shows up on <strong>Today</strong> automatically on its due days — no re-adding it every morning. Checking it off grows its own streak, separate from your daily one.</p>
+      <ul class="habit-list" id="habit-list"></ul>
+      <form class="habit-form" id="habit-form">
+        <div class="habit-form-row">
+          <input type="text" id="habit-text" placeholder="e.g. 20-minute walk" maxlength="200" autocomplete="off" />
+          <select id="habit-freq">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="custom">Custom days</option>
+          </select>
+          <button type="submit">Add habit</button>
+        </div>
+        <div class="day-picker" id="habit-days" hidden></div>
+      </form>
+    </div>
+  </details>
+
   <details class="insights" id="insights">
     <summary>Insights <span class="hint">your last 30 days, measured honestly</span></summary>
     <div class="insights-body" id="insights-body"><p class="insights-note">Loading…</p></div>
@@ -493,6 +575,7 @@ const HORIZONS = [
 const ADD_PLACEHOLDER = { day: "task for today", week: "goal for this week", month: "goal for this month", year: "goal for this year" };
 
 let state = { day: [], week: [], month: [], year: [] };
+let habits = [];
 let profile = { streak: 0, last_complete: null, context: "" };
 let lastPct = { day: 0, week: 0, month: 0, year: 0 };
 let justAddedId = null;
@@ -577,6 +660,9 @@ document.getElementById("signout").addEventListener("click", async () => {
 /* ---------- data ---------- */
 async function loadBoard() {
   const today = periodFor("day");
+  // materialize today's due recurring habits before reading the board
+  const { error: syncErr } = await sb.rpc("sync_todays_habits", { p_today: today });
+  if (syncErr) toast("Couldn't sync habits: " + syncErr.message);
   // roll unfinished day tasks forward to today
   const { error: rollErr } = await sb.from("goals")
     .update({ period: today })
@@ -667,6 +753,107 @@ async function persistPositions(hid) {
   const bad = results.find(r => r.error);
   if (bad) toast("Couldn't save order: " + bad.error.message);
 }
+
+async function saveEstimate(hid, id, minutes) {
+  const t = state[hid].find(x => x.id === id);
+  if (t) t.estimate_min = minutes;
+  if (DEMO) return;
+  const { error } = await sb.from("goals").update({ estimate_min: minutes }).eq("id", id);
+  if (error) toast("Couldn't save estimate: " + error.message);
+}
+
+/* ---------- habits ---------- */
+async function loadHabits() {
+  const { data, error } = await sb.from("habits").select("*").order("created_at", { ascending: true });
+  if (error) { toast("Couldn't load habits: " + error.message); return; }
+  habits = data ?? [];
+}
+
+function freqLabel(h) {
+  if (h.freq === "daily") return "Daily";
+  if (h.freq === "weekdays") return "Weekdays";
+  const names = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  return (h.days || []).slice().sort().map(d => names[d]).join(" ") || "Custom";
+}
+
+function renderHabits() {
+  const ul = document.getElementById("habit-list");
+  if (!habits.length) { ul.innerHTML = '<li class="empty" style="padding:8px 4px">No habits yet — add one below and it'
+    + '&#39;ll start appearing on Today.</li>'; return; }
+  ul.innerHTML = "";
+  habits.forEach(h => {
+    const li = document.createElement("li");
+    li.className = "habit-row" + (h.active ? "" : " paused");
+    li.innerHTML =
+      '<span class="h-text"></span>' +
+      '<span class="h-freq"></span>' +
+      '<span class="h-streak">🔥 ' + (h.streak || 0) + '</span>' +
+      '<button class="h-toggle" title="' + (h.active ? "Pause" : "Resume") + '">' + (h.active ? "⏸" : "▶") + '</button>' +
+      '<button class="h-del" title="Delete">×</button>';
+    li.querySelector(".h-text").textContent = h.text;
+    li.querySelector(".h-freq").textContent = freqLabel(h);
+    li.querySelector(".h-toggle").addEventListener("click", () => toggleHabitActive(h.id));
+    li.querySelector(".h-del").addEventListener("click", () => deleteHabit(h.id));
+    ul.appendChild(li);
+  });
+}
+
+async function addHabit(text, freq, days) {
+  text = text.trim();
+  if (!text) return;
+  const row = { text, freq, days: freq === "custom" ? days : [], active: true, streak: 0, best_streak: 0 };
+  if (DEMO) {
+    habits.push(Object.assign({ id: "demo-h-" + Math.random().toString(36).slice(2, 8), created_at: new Date().toISOString() }, row));
+  } else {
+    const { data, error } = await sb.from("habits").insert(row).select().single();
+    if (error) { toast("Couldn't add habit: " + error.message); return; }
+    habits.push(data);
+  }
+  renderHabits();
+}
+
+async function toggleHabitActive(id) {
+  const h = habits.find(x => x.id === id);
+  if (!h) return;
+  h.active = !h.active;
+  renderHabits();
+  if (DEMO) return;
+  const { error } = await sb.from("habits").update({ active: h.active }).eq("id", id);
+  if (error) { h.active = !h.active; renderHabits(); toast("Couldn't update habit: " + error.message); }
+}
+
+async function deleteHabit(id) {
+  const prev = habits;
+  habits = habits.filter(h => h.id !== id);
+  renderHabits();
+  if (DEMO) return;
+  const { error } = await sb.from("habits").delete().eq("id", id);
+  if (error) { habits = prev; renderHabits(); toast("Couldn't delete habit: " + error.message); }
+}
+
+document.getElementById("habit-freq").addEventListener("change", (e) => {
+  document.getElementById("habit-days").hidden = e.target.value !== "custom";
+});
+(function initDayPicker() {
+  const wrap = document.getElementById("habit-days");
+  const names = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  names.forEach((n, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = n; b.dataset.day = i;
+    b.addEventListener("click", () => b.classList.toggle("on"));
+    wrap.appendChild(b);
+  });
+})();
+document.getElementById("habit-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = document.getElementById("habit-text").value;
+  const freq = document.getElementById("habit-freq").value;
+  const days = [...document.querySelectorAll("#habit-days button.on")].map(b => Number(b.dataset.day));
+  if (freq === "custom" && !days.length) { toast("Pick at least one day for a custom habit."); return; }
+  addHabit(text, freq, days);
+  document.getElementById("habit-text").value = "";
+  document.querySelectorAll("#habit-days button.on").forEach(b => b.classList.remove("on"));
+});
 
 async function maybeAdvanceStreak() {
   const today = periodFor("day");
@@ -776,12 +963,24 @@ function taskEl(hid, task) {
       '<button class="note-btn' + (hasNotes ? " has-notes" : "") + '" aria-label="' + (hasNotes ? "Edit note" : "Add note") + '" aria-expanded="' + open + '" title="Notes">📝</button>' +
       '<button class="del" aria-label="Delete task" title="Delete">×</button>' +
     '</div>' +
-    '<div class="notes-wrap"><div class="notes-inner"><textarea placeholder="Add a note…" maxlength="2000"></textarea></div></div>';
+    '<div class="notes-wrap"><div class="notes-inner">' +
+      '<textarea placeholder="Add a note…" maxlength="2000"></textarea>' +
+      '<div class="est-row"><label>Estimate</label><input type="number" min="1" max="600" placeholder="min" class="est-input" aria-label="Estimate in minutes" /></div>' +
+    '</div></div>';
   li.querySelector(".task-txt").textContent = task.text;
   if (task.source === "assistant") {
     const prov = document.createElement("span");
     prov.className = "prov"; prov.title = "Proposed by your planner"; prov.textContent = "✨";
     li.querySelector(".task-txt").appendChild(prov);
+  } else if (task.source === "habit") {
+    const prov = document.createElement("span");
+    prov.className = "prov"; prov.title = "Recurring habit"; prov.textContent = "🔁";
+    li.querySelector(".task-txt").appendChild(prov);
+  }
+  if (task.estimate_min) {
+    const est = document.createElement("span");
+    est.className = "est"; est.textContent = "⏱" + task.estimate_min + "m";
+    li.querySelector(".task-txt").appendChild(est);
   }
   li.querySelector(".check").addEventListener("click", () => toggleGoal(hid, task.id));
   li.querySelector(".del").addEventListener("click", () => removeGoal(hid, task.id));
@@ -802,6 +1001,22 @@ function taskEl(hid, task) {
     notesTimer = setTimeout(() => saveNotes(hid, task.id, ta.value), 500);
   });
   ta.addEventListener("blur", () => { clearTimeout(notesTimer); saveNotes(hid, task.id, ta.value); });
+
+  const estInput = li.querySelector(".est-input");
+  estInput.value = task.estimate_min || "";
+  let estTimer;
+  const commitEstimate = () => {
+    const v = estInput.value.trim();
+    const minutes = v ? Math.max(1, Math.min(600, Math.round(Number(v)))) : null;
+    saveEstimate(hid, task.id, minutes);
+    const badge = li.querySelector(".task-txt .est");
+    if (minutes) {
+      if (badge) badge.textContent = "⏱" + minutes + "m";
+      else { const est = document.createElement("span"); est.className = "est"; est.textContent = "⏱" + minutes + "m"; li.querySelector(".task-txt").appendChild(est); }
+    } else if (badge) badge.remove();
+  };
+  estInput.addEventListener("input", () => { clearTimeout(estTimer); estTimer = setTimeout(commitEstimate, 500); });
+  estInput.addEventListener("blur", () => { clearTimeout(estTimer); commitEstimate(); });
 
   return li;
 }
@@ -1162,7 +1377,7 @@ async function loadInsights() {
   } else {
     const since = new Date(Date.now() - 30 * 86400000).toISOString();
     const { data, error } = await sb.from("goals")
-      .select("horizon, done, done_at, created_at")
+      .select("horizon, done, done_at, created_at, estimate_min")
       .gte("created_at", since);
     if (error) { body.innerHTML = '<p class="insights-note">Couldn&#39;t load insights: ' + esc(error.message) + '</p>'; return; }
     rows = data ?? [];
@@ -1195,6 +1410,22 @@ function renderInsights(rows) {
   html += '<p class="insights-note">' + (doneRows.length < 5
     ? "Early days — patterns get real after a couple of weeks of data."
     : "Completions by weekday, last 30 days. Gold = your best day.") + '</p>';
+
+  const estRows = doneRows.filter(r => r.estimate_min && r.done_at && r.created_at);
+  if (estRows.length >= 3) {
+    const ratios = estRows.map(r => ((new Date(r.done_at) - new Date(r.created_at)) / 60000) / r.estimate_min)
+      .filter(r => r > 0 && isFinite(r));
+    if (ratios.length >= 3) {
+      const avg = ratios.reduce((a, b) => a + b, 0) / ratios.length;
+      const verdict = avg > 1.15
+        ? "You tend to underestimate — plan roughly " + Math.round((avg - 1) * 100) + "% more time than your gut says."
+        : avg < 0.85
+        ? "You tend to overestimate — you usually finish faster than planned."
+        : "Your estimates are pretty accurate.";
+      html += '<div class="stat" style="margin-top:10px"><span class="v">' + avg.toFixed(1) + '×</span><span class="l">actual vs. estimate</span></div>'
+        + '<p class="insights-note">' + verdict + '</p>';
+    }
+  }
   document.getElementById("insights-body").innerHTML = html;
 }
 
@@ -1205,7 +1436,15 @@ function demoInsightRows() {
     const date = new Date(Date.now() - d * 86400000);
     const w = weights[(date.getDay() + 6) % 7];
     for (let i = 0; i < w; i++) {
-      rows.push({ horizon: "day", done: Math.random() < .8, done_at: date.toISOString(), created_at: date.toISOString() });
+      const done = Math.random() < .8;
+      const hasEstimate = Math.random() < .5;
+      const estimate_min = hasEstimate ? [15, 30, 45, 60][Math.floor(Math.random() * 4)] : null;
+      let done_at = null;
+      if (done) {
+        const actualMin = hasEstimate ? estimate_min * (1.1 + Math.random() * 0.6) : 20 + Math.random() * 60;
+        done_at = new Date(date.getTime() + actualMin * 60000).toISOString();
+      }
+      rows.push({ horizon: "day", done, done_at, created_at: date.toISOString(), estimate_min });
     }
   }
   return rows;
@@ -1232,8 +1471,9 @@ function demoData() {
   });
   const day = [
     mk("day", periodFor("day"), "Reply to the client proposal thread", true, ""),
-    mk("day", periodFor("day"), "30-minute run before it gets hot", false, "Loop around the reservoir — aim for an easy pace."),
-    Object.assign(mk("day", periodFor("day"), "Draft the Q3 goals doc", false, ""), { source: "assistant" })
+    Object.assign(mk("day", periodFor("day"), "30-minute run before it gets hot", false, "Loop around the reservoir — aim for an easy pace."), { estimate_min: 30 }),
+    Object.assign(mk("day", periodFor("day"), "Draft the Q3 goals doc", false, ""), { source: "assistant" }),
+    Object.assign(mk("day", periodFor("day"), "Meditate 10 minutes", true, ""), { source: "habit", habit_id: "demo-h-1" })
   ];
   const week = [
     mk("week", periodFor("week"), "Ship the v2 dashboard redesign", false, "Waiting on final copy from marketing before polishing empty states."),
@@ -1253,6 +1493,13 @@ function demoData() {
   return { day, week, month, year };
 }
 
+function demoHabits() {
+  return [
+    { id: "demo-h-1", text: "Meditate 10 minutes", freq: "daily", days: [], active: true, streak: 6, best_streak: 9, created_at: new Date().toISOString() },
+    { id: "demo-h-2", text: "Gym session", freq: "custom", days: [1, 3, 5], active: true, streak: 2, best_streak: 5, created_at: new Date().toISOString() },
+  ];
+}
+
 /* ---------- boot ---------- */
 async function boot() {
   if (booted) return;
@@ -1263,10 +1510,13 @@ async function boot() {
     Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
     profile = { streak: 4, last_complete: periodFor("day"), context: "Demo mode — sample data only, nothing is saved.", user_id: "demo" };
     document.getElementById("context-text").value = profile.context;
+    habits = demoHabits();
   } else {
     await loadBoard();
+    await loadHabits();
   }
   render();
+  renderHabits();
   const totalGoals = state.day.length + state.week.length + state.month.length + state.year.length;
   if (totalGoals === 0 && !DEMO) wizStart(true);   // empty board → guided setup
   else speak(briefing());

@@ -100,6 +100,17 @@ Deno.serve(async (req: Request) => {
   const opt = (name: string) =>
     interaction.data?.options?.find((o: { name: string }) => o.name === name)?.value as string | undefined;
 
+  // Materialize today's due recurring habits before any command touches the
+  // day list — matches board.ts, keeps /board, /done, /skip consistent
+  // whichever surface the user opens first this morning.
+  {
+    const { data: prof } = await sb.from("profiles").select("user_id").limit(1);
+    if (prof?.length) {
+      const { error } = await sb.rpc("sync_todays_habits", { p_today: today, p_user_id: prof[0].user_id });
+      if (error) console.error("sync_todays_habits failed:", error.message); // non-fatal
+    }
+  }
+
   if (cmd === "board") {
     const { open, all } = await openDayTasks(sb, today);
     const doneList = all.filter((t: { done: boolean }) => t.done);
