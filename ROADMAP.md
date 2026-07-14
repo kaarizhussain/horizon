@@ -19,13 +19,14 @@ a feature checklist:
 - **Read-only calendar by design** — Motion/Reclaim auto-rewrite your calendar;
   Horizon deliberately doesn't. Keep this as a stated principle, not a gap to close.
 
-## Phase 0 — current push (already staged, unchanged)
+## Phase 0 — LIVE as of 2026-07-14
 
 Goal interview wizard · Insights panel · goal provenance (✨) · two-way Discord
-bot · Sunday weekly planning · monthly decomposition · generalized seed action.
-Full list: `PUSH-CHECKLIST.md`. Ships as soon as you say the word.
+bot (inert until Discord app secret is set) · Sunday weekly planning ·
+monthly decomposition · generalized seed action. Deployed and verified —
+see `PUSH-CHECKLIST.md` for the full manifest and end-to-end verification log.
 
-## Phase 1 — close the two biggest competitive gaps — STAGED, built 2026-07-13 night
+## Phase 1 — close the two biggest competitive gaps — LIVE as of 2026-07-14
 
 1. **Recurring habits as a first-class type** (matches Reclaim Habits /
    TickTick habit tracker). Built: `habits` table (freq: daily/weekdays/
@@ -44,7 +45,7 @@ Full list: `PUSH-CHECKLIST.md`. Ships as soon as you say the word.
 Both fully staged in `migrations-3-pending.sql` + `edge-board.ts` v7 +
 `edge-discord-bot.ts` + `index.html` — see `PUSH-CHECKLIST.md`.
 
-## Phase 2 — protection + reporting — STAGED, built 2026-07-14 night
+## Phase 2 — protection + reporting — LIVE as of 2026-07-14
 
 3. **Deep-work protection** (Motion's Meeting Defender / Reclaim's Focus
    Time). Built: `profiles.deep_work_target_hours` (migrations-4-pending.sql),
@@ -61,16 +62,22 @@ Both staged in full — see `PUSH-CHECKLIST.md`.
 
 ## Phase 3 — always-on + integrations
 
-5. **pg_cron fallback** (`ALWAYS-ON.md` option D) — STAGED 2026-07-14 in
-   `migrations-5-pending.sql`. Free, closes the "laptop must be open" gap
-   proven twice already. Needs one manual Vault-secret step at push time
-   (see `PUSH-CHECKLIST.md`).
+5. **pg_cron fallback** (`ALWAYS-ON.md` option D) — LIVE 2026-07-14. Free,
+   closes the "laptop must be open" gap proven twice already. Still needs
+   the Vault secret (your step, see `PUSH-CHECKLIST.md`) to actually arm —
+   no-ops safely without it.
 6. **Third-party import** (Sunsama connects to 9 tools) — lowest priority for
    personal use, highest value if/when Horizon becomes the portfolio piece:
    start with one (Google Tasks or GitHub issues) as a proof of concept, not
    a platform.
 7. GitHub Actions + Claude API for true desktop-independent planning
-   (`ALWAYS-ON.md` option B) — when ready for API billing.
+   (`ALWAYS-ON.md` option B) — user confirmed OK on API billing 2026-07-14,
+   but explicitly asked to hold off arming it. A draft script exists
+   locally (`scripts/daily-plan.mjs`, untracked, not committed) but the
+   workflow file was never written and nothing is wired up. Resume only
+   when the user says so — this is a standing unsupervised, costed,
+   recurring automation and deserves its own explicit go-ahead, not a
+   generic "keep building."
 
 ## Explicitly not doing
 
