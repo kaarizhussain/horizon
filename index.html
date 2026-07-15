@@ -224,6 +224,31 @@
   @media (hover: hover) and (pointer: fine) { .tbtn:hover { transform: translateY(-2px); border-color: var(--month); } }
   .tbtn:active { transform: scale(.94); }
   .tbtn:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+
+  /* theme toggle: Moon↔Sun morph (ported from Amicro's icon crossfade).
+     Light and dark states are mutually-exclusive, equal-specificity rules —
+     no shared base rule to lose a cascade tie, matching how the theme
+     variable overrides are already structured. */
+  .tbtn.theme { position: relative; overflow: hidden; }
+  .tbtn.theme .ic {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-mid) var(--ease-out);
+  }
+  .tbtn.theme .ic svg { width: 17px; height: 17px; }
+  /* light (default): show moon = "tap for dark" */
+  :root:not([data-theme="dark"]) .tbtn.theme .ic-moon { opacity: 1; transform: scale(1) rotate(0); }
+  :root:not([data-theme="dark"]) .tbtn.theme .ic-sun  { opacity: 0; transform: scale(.6) rotate(-90deg); }
+  /* dark: show sun = "tap for light" */
+  :root[data-theme="dark"] .tbtn.theme .ic-moon { opacity: 0; transform: scale(.6) rotate(90deg); }
+  :root[data-theme="dark"] .tbtn.theme .ic-sun  { opacity: 1; transform: scale(1) rotate(0); }
+
+  /* streak celebration: flame pop + sparkle burst (ported from Amicro's sparkle) */
+  .streak .flame { position: relative; display: inline-grid; place-items: center; }
+  .streak .flame.pop { animation: flamePop 420ms var(--ease-out); }
+  @keyframes flamePop { 0%,100% { transform: scale(1); } 35% { transform: scale(1.35); } }
+  .spark { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; color: var(--gold); pointer-events: none; will-change: transform, opacity; }
+  .spark svg { width: 100%; height: 100%; display: block; }
+
   .signout { font-size: 0.71875rem; color: var(--ink-3); background: none; border: none; cursor: pointer; text-decoration: underline; }
   .signout:hover { color: var(--crit); }
 
@@ -585,6 +610,8 @@
     .auth-card, .ob-card, .ob-orb { animation: none; }
     .ob-anim #ob-eyebrow, .ob-anim #ob-question, .ob-anim #ob-options, .ob-anim #ob-deeper-form:not([hidden]) { animation: none; }
     .context[open] .context-body, .habits[open] .habits-body, .insights[open] .insights-body { animation: none; }
+    .tbtn.theme .ic { transition: opacity var(--dur-fast) ease; }
+    .streak .flame.pop { animation: none; }
   }
   [hidden] { display: none !important; }
 </style>
@@ -650,7 +677,10 @@
         <span class="n" id="streak-n">0</span>
         <span class="lbl">day streak</span>
       </div>
-      <button class="tbtn" id="theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+      <button class="tbtn theme" id="theme" title="Toggle light / dark" aria-label="Toggle theme">
+        <span class="ic ic-moon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="ic ic-sun" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+      </button>
       <button class="signout" id="signout">sign out</button>
     </div>
   </header>
@@ -1137,6 +1167,31 @@ document.getElementById("habit-form").addEventListener("submit", (e) => {
   document.querySelectorAll("#habit-days button.on").forEach(b => b.classList.remove("on"));
 });
 
+// One-shot sparkle burst on the streak flame when the day is cleared — rare +
+// celebratory is exactly where a flourish earns its place (ported from Amicro).
+function sparkleStreak() {
+  if (reduceMotion) return;
+  const flame = document.querySelector(".streak .flame");
+  if (!flame || !flame.animate) return;
+  flame.classList.remove("pop"); void flame.offsetWidth; flame.classList.add("pop");
+  const N = 7;
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement("span");
+    s.className = "spark";
+    s.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.6-6.2-4.5-6.2 4.5 2.4-7.6L2 9.6h7.6z"/></svg>';
+    flame.appendChild(s);
+    const ang = (Math.PI * 2 * i) / N + (i % 2 ? 0.45 : 0);
+    const dist = 15 + (i % 3) * 6;
+    const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 3;
+    const anim = s.animate([
+      { transform: "translate(-50%,-50%) scale(0) rotate(0)", opacity: 0 },
+      { transform: "translate(calc(-50% + " + dx + "px), calc(-50% + " + dy + "px)) scale(1) rotate(140deg)", opacity: 1, offset: 0.4 },
+      { transform: "translate(calc(-50% + " + (dx * 1.3) + "px), calc(-50% + " + (dy * 1.3 + 6) + "px)) scale(0) rotate(210deg)", opacity: 0 }
+    ], { duration: 600 + (i % 3) * 90, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" });
+    anim.finished.then(() => s.remove(), () => s.remove());
+  }
+}
+
 async function maybeAdvanceStreak() {
   const today = periodFor("day");
   const day = state.day;
@@ -1145,6 +1200,7 @@ async function maybeAdvanceStreak() {
   profile.streak = (profile.last_complete && daysBetween(profile.last_complete, today) === 1) ? profile.streak + 1 : 1;
   profile.last_complete = today;
   document.getElementById("streak-n").textContent = profile.streak;
+  sparkleStreak();
   if (!DEMO) {
     const { error } = await sb.from("profiles")
       .update({ streak: profile.streak, last_complete: today })
