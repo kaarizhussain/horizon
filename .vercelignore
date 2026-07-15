@@ -1,0 +1,5 @@
+# Horizon is a single static index.html. Everything else in this repo is
+# source (edge functions, migrations), planning docs, or alternate designs
+# that should NOT be served publicly. Deploy only the app.
+*
+!index.html
