@@ -773,6 +773,16 @@
       <div class="view" id="view-briefing" hidden>
         <h2 style="margin:0; font-size:1.5rem;">Assistant briefing</h2>
         <p class="view-sub">What your 7am planner knows about you.</p>
+        <div class="brief-card" style="margin-bottom:16px;">
+          <p style="margin-bottom:10px;">What should Horizon call you? Leave blank to use the part of your email before the @.</p>
+          <div class="dwt-row" style="margin-top:0;">
+            <input type="text" id="name-input" placeholder="Your name" maxlength="60" autocomplete="name" style="flex:1; width:auto; max-width:16rem; font-variant-numeric:normal;" />
+          </div>
+          <div class="brief-actions">
+            <button id="name-save">Save name</button>
+            <span class="brief-saved" id="name-saved">Saved ✓</span>
+          </div>
+        </div>
         <div class="brief-card">
           <p>Your daily itinerary is planned from this. Describe your routine, constraints, and preferences — e.g. <em>“I work 9–5. Gym Mon/Wed/Fri at 6pm. Deep work is best before noon. Keep evenings free.”</em></p>
           <textarea id="context-text" placeholder="Tell your assistant how your days actually work…"></textarea>
@@ -1024,6 +1034,7 @@ async function loadBoard() {
   }
   document.getElementById("context-text").value = profile.context || "";
   document.getElementById("dwt-input").value = profile.deep_work_target_hours ?? "";
+  document.getElementById("name-input").value = profile.display_name || "";
 }
 
 async function addGoal(hid, text) {
@@ -1262,6 +1273,19 @@ async function maybeAdvanceStreak() {
   speak("<strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Your 7am plan tomorrow will know it.");
 }
 
+/* ---------- profile: display name ---------- */
+document.getElementById("name-save").addEventListener("click", async () => {
+  const val = document.getElementById("name-input").value.trim().slice(0, 60);
+  const saved = document.getElementById("name-saved");
+  profile.display_name = val || null;
+  renderChrome();
+  saved.classList.add("show");
+  setTimeout(() => saved.classList.remove("show"), 2200);
+  if (DEMO) return;
+  const { error } = await sb.from("profiles").update({ display_name: profile.display_name }).eq("user_id", profile.user_id);
+  if (error) toast("Couldn't save name: " + error.message);
+});
+
 /* ---------- briefing ---------- */
 function readDwtInput() {
   const raw = document.getElementById("dwt-input").value.trim();
@@ -1473,17 +1497,24 @@ function renderBoard() {
   updateMeta();
 }
 
+function displayName() {
+  const set = (profile.display_name || "").trim();
+  if (set) return set;
+  const email = DEMO ? "demo@horizon.app" : sessionEmail;
+  const prefix = (email.split("@")[0] || "you");
+  return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+}
+
 function renderChrome() {
   const d = new Date();
   document.getElementById("date-line").textContent =
     d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const email = DEMO ? "demo@horizon.app" : sessionEmail;
-  const prefix = (email.split("@")[0] || "you");
-  const nice = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  const nice = displayName();
   document.getElementById("greeting-line").textContent = greeting() + ", " + nice;
   document.getElementById("user-name").textContent = nice;
   document.getElementById("user-email").textContent = email;
-  document.getElementById("avatar").textContent = prefix.slice(0, 2).toUpperCase();
+  document.getElementById("avatar").textContent = nice.slice(0, 2).toUpperCase();
   document.getElementById("streak-n").textContent = profile.streak;
 }
 
@@ -2164,9 +2195,10 @@ async function boot() {
     if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
     else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
     Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
-    profile = { streak: 4, last_complete: periodFor("day"), context: "Demo mode — sample data only, nothing is saved.", deep_work_target_hours: 10, user_id: "demo" };
+    profile = { streak: 4, last_complete: periodFor("day"), context: "Demo mode — sample data only, nothing is saved.", deep_work_target_hours: 10, display_name: "Demo", user_id: "demo" };
     document.getElementById("context-text").value = profile.context;
     document.getElementById("dwt-input").value = profile.deep_work_target_hours;
+    document.getElementById("name-input").value = profile.display_name;
     habits = demoHabits();
   } else {
     await loadBoard();

@@ -15,15 +15,20 @@ the backend is already live. The one real pending deploy is the v3 redesign._
   briefing, the 7am planner is seeding assistant tasks. Loop is running.
 
 ## Claude's steps at "push" (v3)
-1. **Deploy `index.html` (v3 redesign, commit `d2d512f`)** to Vercel project
-   `horizon` — the whole point of this push. Warm editorial redesign on the
-   template; full feature parity with the deployed v2 (auth, board, habits,
-   onboarding, insights, briefing, drag, copilot dock, theme morph).
-2. Checksum-verify the deployed HTML byte-for-byte against local
+1. Run **`migrations-6-pending.sql`** (`profiles.display_name text`, nullable
+   — additive, no backfill needed) → advisors check.
+2. **Deploy `index.html` (v3 redesign + display-name field)** to Vercel
+   project `horizon` — the whole point of this push. Warm editorial redesign
+   on the template; full feature parity with the deployed v2 (auth, board,
+   habits, onboarding, insights, briefing, drag, copilot dock, theme morph),
+   plus a new "What should Horizon call you?" field in Briefing (falls back
+   to the email-derived name if left blank — demo-verified round trip).
+3. Checksum-verify the deployed HTML byte-for-byte against local
    `index.html`.
-3. Smoke-test the live URL: sign in on the real account, confirm the real
+4. Smoke-test the live URL: sign in on the real account, confirm the real
    board renders (year/month/week/day ladder + today's assistant tasks),
-   toggle a task, switch a tab, open the copilot dock, flip the theme.
+   toggle a task, switch a tab, open the copilot dock, flip the theme, set
+   a display name and confirm the greeting updates.
 
 ## Verify-at-push (drift the reconcile flagged, resolve before/at deploy)
 - **`board` deployed slug is v6, docs claimed v7.** Confirm whether the
