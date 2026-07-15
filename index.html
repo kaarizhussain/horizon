@@ -3,625 +3,585 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Horizon — Goal Command Center</title>
+<title>Horizon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ground: #12101B; --panel: #1B1830; --panel-2: #241F3B;
-    --line: #322B4E; --line-soft: #29244099;
-    --ink: #F3F0FF; --ink-2: #B8B2D6; --ink-3: #7E789C;
-    --day: #FF6A3D; --day-soft: #FF6A3D22;
-    --week: #F94FA0; --week-soft: #F94FA022;
-    --month: #8B5CFF; --month-soft: #8B5CFF22;
-    --year: #17C4A6; --year-soft: #17C4A622;
-    --gold: #FFC43D;
-    --good: #2FBF71; --warn: #FFB020; --crit: #FF5470;
-    --ring-track: #2A2542;
-    --shadow: 0 18px 50px -20px rgba(0,0,0,.7);
-    --radius: 18px;
+    --cream:#FAF6EF; --paper:#FFFDF9; --ink:#2B2721; --muted:#8C8375; --faint:#B4AB9C;
+    --line:#EAE2D5; --accent:#C25E3A; --accent-ink:#A44A29; --accent-soft:#F4E4D9;
+    --sage:#6E8B6A; --sage-soft:#E6EDE1;
+    --hero-bg:#2B2721; --hero-text:#FAF6EF; --hero-muted:#C9BFB0;
+    --scroll-thumb:#E0D8CA; --crit:#B04A4A;
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     --ease-hover: ease;
     --dur-fast: 130ms; --dur-mid: 200ms; --dur-slow: 260ms;
-    --bar-bg: rgba(27, 24, 48, 0.62);
-    --font-display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --font-mono: "SF Mono", "Cascadia Mono", "Consolas", ui-monospace, monospace;
-  }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --ground: #FBF7F0; --panel: #FFFFFF; --panel-2: #F6F1FF;
-      --line: #E7E0F2; --line-soft: #EEE8F8;
-      --ink: #1A1626; --ink-2: #575075; --ink-3: #948DAE;
-      --day-soft: #FF6A3D18; --week-soft: #F94FA018; --month-soft: #8B5CFF18; --year-soft: #17C4A618;
-      --ring-track: #EAE4F5;
-      --shadow: 0 20px 44px -24px rgba(60,40,110,.35);
-      --bar-bg: rgba(255, 255, 255, 0.62);
-    }
+    --font-display: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+    --font-body: 'Hanken Grotesk', system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   :root[data-theme="dark"] {
-    --ground:#12101B;--panel:#1B1830;--panel-2:#241F3B;--line:#322B4E;--line-soft:#29244099;
-    --ink:#F3F0FF;--ink-2:#B8B2D6;--ink-3:#7E789C;--day-soft:#FF6A3D22;--week-soft:#F94FA022;--month-soft:#8B5CFF22;
-    --year-soft:#17C4A622;--ring-track:#2A2542;--shadow:0 18px 50px -20px rgba(0,0,0,.7);
-    --bar-bg:rgba(27,24,48,.62);
-  }
-  :root[data-theme="light"] {
-    --ground:#FBF7F0;--panel:#FFFFFF;--panel-2:#F6F1FF;--line:#E7E0F2;--line-soft:#EEE8F8;
-    --ink:#1A1626;--ink-2:#575075;--ink-3:#948DAE;--day-soft:#FF6A3D18;--week-soft:#F94FA018;--month-soft:#8B5CFF18;
-    --year-soft:#17C4A618;--ring-track:#EAE4F5;--shadow:0 20px 44px -24px rgba(60,40,110,.35);
-    --bar-bg:rgba(255,255,255,.62);
+    --cream:#1B1712; --paper:#252019; --ink:#F0EAE0; --muted:#A79C8C; --faint:#776D5F;
+    --line:#3A332A; --accent:#D96E45; --accent-ink:#E8916C; --accent-soft:#3E2A1F;
+    --sage:#8FAF8A; --sage-soft:#2A3327;
+    --hero-bg:#2E2822; --hero-text:#F5EFE6; --hero-muted:#B0A695;
+    --scroll-thumb:#4A4237;
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
+  html, body { margin: 0; height: 100%; }
   body {
-    font-family: var(--font-body);
-    background:
-      radial-gradient(1100px 520px at 88% -8%, var(--month-soft), transparent 60%),
-      radial-gradient(900px 460px at 4% 4%, var(--day-soft), transparent 55%),
-      var(--ground);
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
+    font-family: var(--font-body); color: var(--ink); background: var(--cream);
+    -webkit-font-smoothing: antialiased; overflow: hidden;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 22px 64px; }
-  body:has(.demo-banner) .wrap { padding-top: 50px; }
+  [hidden] { display: none !important; }
+  h1, h2, .serif { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes dockIn { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .hz-scroll::-webkit-scrollbar { width: 8px; }
+  .hz-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 8px; }
+  .hz-scroll::-webkit-scrollbar-track { background: transparent; }
 
   /* ---- demo banner ---- */
   .demo-banner {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: var(--gold); color: #1A1626; text-align: center;
-    font-size: 0.75rem; font-weight: 700; padding: 6px 10px;
-    letter-spacing: .04em; text-transform: uppercase;
+    background: var(--accent-soft); color: var(--accent-ink); text-align: center;
+    font-size: 0.75rem; font-weight: 700; padding: 5px 10px;
+    letter-spacing: .05em; text-transform: uppercase;
   }
+  body:has(.demo-banner) .shell { padding-top: 26px; }
 
-  /* ---- auth gate ---- */
-  .auth {
-    min-height: 100vh; display: grid; place-items: center; padding: 22px;
+  /* ---- buttons: shared press feedback ---- */
+  button { font-family: var(--font-body); }
+  .pressable { transition: transform var(--dur-fast) var(--ease-out); }
+  .pressable:active { transform: scale(.97); }
+  button:focus-visible, .check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent) !important; }
+
+  /* ================= AUTH ================= */
+  .auth { height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .auth-card { max-width: 400px; width: 100%; text-align: center; animation: fadeUp .5s var(--ease-out) both; }
+  .auth-logo {
+    width: 44px; height: 44px; border-radius: 13px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
   }
-  .auth-card {
-    width: 100%; max-width: 400px; background: var(--panel);
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 32px 28px; box-shadow: var(--shadow); text-align: center;
-    animation: rise .5s var(--ease-out) both;
-  }
-  .auth-card .logo { font-size: 2.375rem; margin-bottom: 4px; }
-  .auth-card p { color: var(--ink-2); font-size: 0.875rem; line-height: 1.5; margin: 10px 0 18px; }
-  .auth-tabs { display: flex; gap: 4px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 18px; }
+  .auth-card h1 { font-size: 2.125rem; margin: 0; }
+  .auth-card .sub { font-size: 0.96875rem; color: var(--muted); margin: 12px 0 24px; line-height: 1.5; }
+  .auth-tabs { display: flex; gap: 4px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
   .auth-tab {
-    flex: 1; border: none; background: transparent; color: var(--ink-3); font-weight: 700; font-size: 0.8125rem;
-    padding: 8px; border-radius: 999px; cursor: pointer; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+    flex: 1; border: none; background: transparent; color: var(--muted); font-weight: 600; font-size: 0.8125rem;
+    padding: 8px; border-radius: 999px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
   }
-  .auth-tab.active { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+  .auth-tab.active { background: var(--accent-soft); color: var(--accent-ink); }
+  .auth-tab:active { transform: scale(.97); }
   .auth-card form { display: flex; flex-direction: column; gap: 10px; }
   .auth-card input {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 12px 14px; font-size: 0.9375rem; font-family: var(--font-body);
+    background: var(--paper); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 13px; padding: 13px 16px; font-size: 0.9375rem; font-family: var(--font-body);
   }
-  .auth-card input:focus { outline: none; border-color: var(--month); }
   .auth-card .field-error { font-size: 0.75rem; color: var(--crit); text-align: left; margin: -4px 0 0; min-height: 1em; }
-  .auth-card button {
-    border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
-    font-weight: 700; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 0.9375rem;
+  .auth-card button[type="submit"] {
+    border: none; background: var(--accent); color: #fff;
+    font-weight: 600; padding: 13px; border-radius: 11px; cursor: pointer; font-size: 0.90625rem;
     transition: transform var(--dur-fast) var(--ease-out);
   }
-  .auth-card button:active { transform: scale(.97); }
+  .auth-card button[type="submit"]:active { transform: scale(.97); }
   .auth-card button:disabled { opacity: .6; cursor: default; }
-  .auth-note { font-size: 0.78125rem !important; color: var(--ink-3) !important; margin-top: 16px !important; }
-  .auth-sent { color: var(--good); font-weight: 600; font-size: 0.90625rem; }
+  .auth-note { font-size: 0.8125rem; color: var(--faint); margin-top: 16px; }
+  .auth-sent { color: var(--sage); font-weight: 600; }
 
-  /* ---- onboarding (dedicated full-screen flow, questions before dashboard) ---- */
-  .onboarding {
-    min-height: 100vh; display: grid; place-items: center; padding: 22px;
-  }
+  /* ================= ONBOARDING ================= */
+  .onboarding { height: 100vh; display: grid; place-items: center; padding: 22px; overflow-y: auto; }
   .ob-card {
-    width: 100%; max-width: 460px; background: var(--panel);
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 30px 30px 26px; box-shadow: var(--shadow);
-    animation: rise .5s var(--ease-out) both;
+    width: 100%; max-width: 470px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 20px;
+    padding: 30px 30px 26px; animation: fadeUp .5s var(--ease-out) both;
   }
   @keyframes obStepIn { from { opacity: 0; transform: translateY(6px); } }
   .ob-anim #ob-eyebrow, .ob-anim #ob-question, .ob-anim #ob-options, .ob-anim #ob-deeper-form:not([hidden]) {
     animation: obStepIn var(--dur-slow) var(--ease-out) both;
   }
   .ob-progress { display: flex; gap: 6px; margin-bottom: 20px; }
-  .ob-dot { flex: 1; height: 4px; border-radius: 999px; background: var(--ring-track); transition: background var(--dur-mid) var(--ease-out); }
-  .ob-dot.done { background: var(--month); }
-  .ob-dot.current { background: var(--day); }
+  .ob-dot { flex: 1; height: 4px; border-radius: 999px; background: var(--line); transition: background var(--dur-mid) var(--ease-out); }
+  .ob-dot.done { background: var(--sage); }
+  .ob-dot.current { background: var(--accent); }
   .ob-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-  .ob-orb {
-    width: 26px; height: 26px; border-radius: 50%; flex: none;
-    background: radial-gradient(circle at 32% 30%, #fff6, transparent 45%), conic-gradient(from 210deg, var(--day), var(--month), var(--year), var(--day));
-    animation: spin 9s linear infinite;
-  }
-  .ob-eyebrow { font-size: 0.75rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
-  .ob-question { font-family: var(--font-display); font-size: 1.375rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.3; margin: 10px 0 20px; text-wrap: balance; }
+  .ob-mark { width: 24px; height: 24px; border-radius: 7px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex: none; }
+  .ob-eyebrow { font-size: 0.75rem; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .ob-question { font-family: var(--font-display); font-size: 1.4375rem; line-height: 1.3; margin: 10px 0 20px; text-wrap: balance; }
   .ob-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
   .ob-opt {
-    text-align: left; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
-    padding: 12px 14px; border-radius: 12px; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+    text-align: left; border: 1px solid var(--line); background: var(--cream); color: var(--ink);
+    padding: 12px 14px; border-radius: 12px; font-size: 0.9375rem; font-weight: 500; cursor: pointer;
     transition: border-color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
   }
-  @media (hover: hover) and (pointer: fine) { .ob-opt:hover { border-color: var(--month); background: var(--month-soft); } }
+  @media (hover: hover) and (pointer: fine) { .ob-opt:hover { border-color: var(--accent); background: var(--accent-soft); } }
   .ob-opt:active { transform: scale(.98); }
-  .ob-opt .ob-opt-sub { display: block; font-weight: 500; font-size: 0.78125rem; color: var(--ink-3); margin-top: 2px; }
-  .ob-opt.picked { border-color: var(--month); background: var(--month-soft); }
+  .ob-opt .ob-opt-sub { display: block; font-weight: 400; font-size: 0.78125rem; color: var(--faint); margin-top: 2px; }
+  .ob-opt.picked { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
   .ob-opt.capped { opacity: .45; cursor: not-allowed; }
-  @media (hover: hover) and (pointer: fine) { .ob-opt.capped:hover { border-color: var(--line); background: var(--panel-2); } }
+  @media (hover: hover) and (pointer: fine) { .ob-opt.capped:hover { border-color: var(--line); background: var(--cream); } }
   .ob-cat-actions { margin-top: 4px; }
-  .ob-cat-hint { font-size: 0.8125rem; color: var(--ink-3); margin: 2px 0 12px; min-height: 1.2em; }
-  .ob-cat-continue {
-    width: 100%; border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
-    font-weight: 700; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 0.875rem;
+  .ob-cat-hint { font-size: 0.8125rem; color: var(--faint); margin: 2px 0 12px; min-height: 1.2em; }
+  .ob-cat-continue, .ob-deeper-actions button[type="submit"] {
+    width: 100%; flex: 1; border: none; background: var(--accent); color: #fff;
+    font-weight: 600; padding: 12px; border-radius: 11px; cursor: pointer; font-size: 0.875rem;
     transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
   }
-  .ob-cat-continue:active { transform: scale(.97); }
+  .ob-cat-continue:active, .ob-deeper-actions button[type="submit"]:active { transform: scale(.97); }
   .ob-cat-continue:disabled { opacity: .45; cursor: default; }
   .ob-deeper { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
-  .ob-deeper-label { font-size: 0.8125rem; color: var(--ink-2); }
+  .ob-deeper-label { font-size: 0.8125rem; color: var(--muted); }
   .ob-deeper input, .ob-deeper textarea {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 11px 13px; font-size: 0.9375rem; font-family: var(--font-body); resize: vertical;
+    background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 11px; padding: 11px 13px; font-size: 0.9375rem; font-family: var(--font-body); resize: vertical;
   }
-  .ob-deeper input:focus, .ob-deeper textarea:focus { outline: none; border-color: var(--month); }
   .ob-deeper-actions { display: flex; gap: 8px; }
-  .ob-deeper-actions button[type="submit"] {
-    flex: 1; border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
-    font-weight: 700; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 0.875rem;
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-  .ob-deeper-actions button[type="submit"]:active { transform: scale(.97); }
   .ob-back {
-    border: 1px solid var(--line); background: transparent; color: var(--ink-2); font-weight: 600; font-size: 0.875rem;
-    padding: 11px 16px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 500; font-size: 0.875rem;
+    padding: 11px 16px; border-radius: 11px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-hover);
   }
+  .ob-back:active { transform: scale(.97); }
   .ob-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
   .ob-foot button {
-    border: none; background: transparent; color: var(--ink-3); font-size: 0.8125rem; font-weight: 600;
+    border: none; background: transparent; color: var(--faint); font-size: 0.8125rem; font-weight: 500;
     cursor: pointer; text-decoration: underline; padding: 4px;
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-hover);
   }
   .ob-foot button:hover { color: var(--ink); }
+  .ob-foot button:active { transform: scale(.97); }
 
-  /* ---- command bar ---- */
-  .bar {
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
-    position: sticky; top: 10px; z-index: 10;
-    background: var(--bar-bg);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
-    border: 1px solid var(--line-soft); border-radius: 16px;
-    padding: 10px 16px;
-  }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .bar { background: var(--panel); } }
-  @media (prefers-reduced-transparency: reduce) { .bar { background: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-  @media (prefers-contrast: more) { .bar { background: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--ink-3); } }
+  /* ================= APP SHELL ================= */
+  .shell { display: flex; height: 100vh; }
 
-  .brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; }
-  .logo {
-    font-family: var(--font-display);
-    font-weight: 800; font-size: 1.75rem; letter-spacing: -.03em; line-height: 1;
-    background: linear-gradient(100deg, var(--day), var(--month) 55%, var(--year));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+  /* ---- sidebar ---- */
+  .side {
+    width: 248px; flex: none; background: var(--paper); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; padding: 26px 18px;
   }
-  .tagline { font-size: 0.6875rem; color: var(--ink-3); letter-spacing: .12em; text-transform: uppercase; }
-  .bar-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .datechip { display:flex; flex-direction:column; align-items:flex-end; line-height:1.15; }
-  .datechip .d { font-weight: 700; font-size: 0.875rem; }
-  .datechip .s { font-size: 0.6875rem; color: var(--ink-3); letter-spacing:.08em; text-transform:uppercase; }
-  .streak {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--panel); border: 1px solid var(--line);
-    padding: 7px 12px; border-radius: 999px;
+  .side-brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 26px; }
+  .side-mark {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; flex: none;
   }
-  .streak .flame { font-size: 1rem; }
-  .streak .n { font-family: var(--font-mono); font-weight: 700; font-size: 1rem; font-variant-numeric: tabular-nums; color: var(--gold); }
-  .streak .lbl { font-size: 0.65625rem; color: var(--ink-3); text-transform: uppercase; letter-spacing:.08em; }
-  .tbtn {
-    display: grid; place-items: center; width: 38px; height: 38px;
-    border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
-    color: var(--ink); cursor: pointer; font-size: 1rem;
-    transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-hover);
+  .side-word { font-family: var(--font-display); font-size: 1.4375rem; letter-spacing: -0.01em; }
+  .nav { display: flex; flex-direction: column; gap: 3px; }
+  .nav button {
+    display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 11px;
+    border: none; cursor: pointer; font-size: 0.90625rem; font-weight: 500; text-align: left; width: 100%;
+    background: none; color: var(--muted);
+    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
   }
-  @media (hover: hover) and (pointer: fine) { .tbtn:hover { transform: translateY(-2px); border-color: var(--month); } }
-  .tbtn:active { transform: scale(.94); }
-  .tbtn:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+  @media (hover: hover) and (pointer: fine) { .nav button:hover { color: var(--ink); } }
+  .nav button:active { transform: scale(.98); }
+  .nav button.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+  .nav button svg { flex: none; }
 
-  /* theme toggle: Moon↔Sun morph (ported from Amicro's icon crossfade).
-     Light and dark states are mutually-exclusive, equal-specificity rules —
-     no shared base rule to lose a cascade tie, matching how the theme
-     variable overrides are already structured. */
-  .tbtn.theme { position: relative; overflow: hidden; }
-  .tbtn.theme .ic {
+  .side-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 14px; }
+  .streak-card { background: var(--sage-soft); border-radius: 14px; padding: 15px 16px; }
+  .streak-card .lbl { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sage); font-weight: 600; }
+  .streak-card .row { display: flex; align-items: baseline; gap: 7px; margin-top: 4px; }
+  .streak-card .n { font-family: var(--font-display); font-size: 1.875rem; line-height: 1; color: var(--ink); position: relative; display: inline-block; }
+  .streak-card .sub { font-size: 0.8125rem; color: var(--muted); }
+  .streak-card .n.pop { animation: flamePop 420ms var(--ease-out); }
+  @keyframes flamePop { 0%,100% { transform: scale(1); } 35% { transform: scale(1.3); } }
+  .spark { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; color: var(--accent); pointer-events: none; will-change: transform, opacity; }
+  .spark svg { width: 100%; height: 100%; display: block; }
+
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 4px 6px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; flex: none;
+  }
+  .side-user .who { line-height: 1.25; flex: 1; min-width: 0; }
+  .side-user .who .nm { font-size: 0.84375rem; font-weight: 600; }
+  .side-user .who .em { font-size: 0.75rem; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .iconbtn {
+    border: none; background: none; cursor: pointer; color: var(--faint); padding: 4px; display: flex; border-radius: 8px;
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-hover);
+  }
+  @media (hover: hover) and (pointer: fine) { .iconbtn:hover { color: var(--ink); } }
+  .iconbtn:active { transform: scale(.9); }
+  .iconbtn.danger:hover { color: var(--crit); }
+
+  /* theme toggle: Moon<->Sun morph (Amicro port) */
+  .iconbtn.theme { position: relative; width: 26px; height: 26px; overflow: hidden; }
+  .iconbtn.theme .ic {
     position: absolute; inset: 0; display: grid; place-items: center;
     transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-mid) var(--ease-out);
   }
-  .tbtn.theme .ic svg { width: 17px; height: 17px; }
-  /* light (default): show moon = "tap for dark" */
-  :root:not([data-theme="dark"]) .tbtn.theme .ic-moon { opacity: 1; transform: scale(1) rotate(0); }
-  :root:not([data-theme="dark"]) .tbtn.theme .ic-sun  { opacity: 0; transform: scale(.6) rotate(-90deg); }
-  /* dark: show sun = "tap for light" */
-  :root[data-theme="dark"] .tbtn.theme .ic-moon { opacity: 0; transform: scale(.6) rotate(90deg); }
-  :root[data-theme="dark"] .tbtn.theme .ic-sun  { opacity: 1; transform: scale(1) rotate(0); }
+  :root:not([data-theme="dark"]) .iconbtn.theme .ic-moon { opacity: 1; transform: scale(1) rotate(0); }
+  :root:not([data-theme="dark"]) .iconbtn.theme .ic-sun  { opacity: 0; transform: scale(.6) rotate(-90deg); }
+  :root[data-theme="dark"] .iconbtn.theme .ic-moon { opacity: 0; transform: scale(.6) rotate(90deg); }
+  :root[data-theme="dark"] .iconbtn.theme .ic-sun  { opacity: 1; transform: scale(1) rotate(0); }
+  .theme-fade, .theme-fade * { transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease !important; }
 
-  /* streak celebration: flame pop + sparkle burst (ported from Amicro's sparkle) */
-  .streak .flame { position: relative; display: inline-grid; place-items: center; }
-  .streak .flame.pop { animation: flamePop 420ms var(--ease-out); }
-  @keyframes flamePop { 0%,100% { transform: scale(1); } 35% { transform: scale(1.35); } }
-  .spark { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; color: var(--gold); pointer-events: none; will-change: transform, opacity; }
-  .spark svg { width: 100%; height: 100%; display: block; }
-
-  .signout { font-size: 0.71875rem; color: var(--ink-3); background: none; border: none; cursor: pointer; text-decoration: underline; }
-  .signout:hover { color: var(--crit); }
-
-  /* ---- copilot ---- */
-  .copilot {
-    position: relative; overflow: hidden;
-    background: var(--panel);
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow);
+  /* ---- main ---- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .main-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 22px 34px; border-bottom: 1px solid var(--line);
   }
-  .copilot::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: linear-gradient(var(--day), var(--month), var(--year));
-  }
-  .co-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
-  .co-orb {
-    width: 30px; height: 30px; border-radius: 50%; flex: none;
-    background: radial-gradient(circle at 32% 30%, #fff6, transparent 45%), conic-gradient(from 210deg, var(--day), var(--month), var(--year), var(--day));
-    box-shadow: 0 0 0 3px var(--month-soft);
-    animation: spin 9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .co-name { font-family: var(--font-display); font-weight: 700; font-size: 0.9375rem; letter-spacing: -.01em; }
-  .co-name span { color: var(--ink-3); font-weight: 500; font-size: 0.75rem; letter-spacing:.04em; margin-left: 6px; }
-  .co-msg { font-size: 0.96875rem; line-height: 1.5; color: var(--ink); margin: 2px 0 14px; max-width: 74ch; }
-  .co-msg strong { color: var(--gold); font-weight: 700; }
-  .co-msg .h-day { color: var(--day); font-weight: 700; }
-  .co-msg .h-week { color: var(--week); font-weight: 700; }
-  .co-msg .h-month { color: var(--month); font-weight: 700; }
-  .co-msg .h-year { color: var(--year); font-weight: 700; }
-  .co-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip {
-    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
-    padding: 7px 13px; border-radius: 999px; font-size: 0.78125rem; font-weight: 600;
-    cursor: pointer; letter-spacing: .01em;
-    transition: color var(--dur-fast) var(--ease-hover), border-color var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
-  }
-  @media (hover: hover) and (pointer: fine) { .chip:hover { color: var(--ink); border-color: var(--month); transform: translateY(-1px); } }
-  .chip:active { transform: scale(.96); }
-  .chip:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
-  .ask { display: flex; gap: 8px; margin-top: 12px; }
-  .ask input {
-    flex: 1; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 999px; padding: 9px 16px; font-size: 0.84375rem; font-family: var(--font-body); min-width: 0;
-  }
-  .ask input::placeholder { color: var(--ink-3); }
-  .ask input:focus { outline: none; border-color: var(--month); }
-  .ask button {
-    border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
-    font-weight: 700; padding: 0 18px; border-radius: 999px; cursor: pointer; font-size: 0.84375rem;
+  .main-head .date { font-size: 0.8125rem; color: var(--muted); letter-spacing: 0.02em; }
+  .main-head h1 { margin: 2px 0 0; font-size: 1.6875rem; }
+  .co-btn {
+    display: flex; align-items: center; gap: 9px; background: var(--hero-bg); color: var(--hero-text);
+    border: none; padding: 11px 17px; border-radius: 11px; font-size: 0.875rem; font-weight: 600; cursor: pointer;
     transition: transform var(--dur-fast) var(--ease-out);
   }
-  .ask button:active { transform: scale(.96); }
-  .ask button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .co-btn:active { transform: scale(.97); }
 
-  /* ---- assistant briefing (context) ---- */
-  .context {
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  .content { flex: 1; overflow-y: auto; padding: 34px; }
+  .view { max-width: 820px; margin: 0 auto; }
+  .view.wide { max-width: 900px; }
+  .view.entering { animation: fadeUp .4s var(--ease-out) both; }
+
+  /* ---- focus hero ---- */
+  .hero {
+    background: var(--hero-bg); color: var(--hero-text); border-radius: 20px;
+    padding: 28px 30px; display: flex; align-items: center; gap: 26px; margin-bottom: 14px;
   }
-  .context summary {
-    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    font-weight: 700; font-size: 0.875rem; list-style: none;
+  .hero .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .hero .title { font-family: var(--font-display); font-size: 1.875rem; margin-top: 8px; line-height: 1.15; }
+  .hero .meta { font-size: 0.90625rem; color: var(--hero-muted); margin-top: 8px; }
+  .hero .go {
+    flex: none; background: var(--accent); color: #fff; border: none; padding: 13px 22px;
+    border-radius: 12px; font-size: 0.90625rem; font-weight: 600; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
   }
-  .context summary::-webkit-details-marker { display: none; }
-  .context summary::before { content: "📡"; font-size: 0.9375rem; }
-  .context summary .hint { font-weight: 500; font-size: 0.75rem; color: var(--ink-3); margin-left: auto; }
-  .context-body { padding: 0 20px 18px; }
-  .context-body p { font-size: 0.8125rem; color: var(--ink-2); line-height: 1.5; margin: 0 0 10px; max-width: 78ch; }
-  .context-body textarea {
-    width: 100%; min-height: 96px; resize: vertical;
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 11px 13px; font-size: 0.84375rem; font-family: var(--font-body); line-height: 1.5;
+  .hero .go:active { transform: scale(.97); }
+  @media (max-width: 640px) { .hero { flex-direction: column; align-items: flex-start; gap: 16px; } }
+
+  .sec-head { display: flex; align-items: center; justify-content: space-between; margin: 30px 4px 14px; }
+  .sec-head h2 { margin: 0; font-size: 1.3125rem; }
+  .sec-head .count { font-size: 0.8125rem; color: var(--muted); }
+  .view-sub { margin: 5px 0 24px; font-size: 0.90625rem; color: var(--muted); }
+
+  /* ---- task rows ---- */
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .task {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 15px;
+    transition: border-color var(--dur-fast) var(--ease-hover), opacity var(--dur-mid) var(--ease-out);
   }
-  .context-body textarea:focus { outline: none; border-color: var(--month); }
-  .dwt-row { display: flex; align-items: center; gap: 9px; margin-top: 12px; }
-  .dwt-row label { font-size: 0.8125rem; color: var(--ink-2); }
-  .dwt-row input {
-    width: 4.5rem; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+  @media (hover: hover) and (pointer: fine) { .task:hover { border-color: var(--faint); } }
+  .task.enter { animation: taskIn var(--dur-mid) var(--ease-out); }
+  @keyframes taskIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+  .task.dragging { transition: none; z-index: 5; border-color: var(--accent); box-shadow: 0 14px 30px -18px rgba(43,39,33,.4); cursor: grabbing; }
+  .task.drag-settling { transition: transform var(--dur-fast) var(--ease-out); }
+  .task.done { opacity: .72; }
+
+  .task-row { display: flex; align-items: center; gap: 13px; padding: 13px 16px; }
+  .drag-handle {
+    cursor: grab; border: none; background: transparent; color: var(--faint);
+    font-size: 0.875rem; line-height: 1; padding: 2px 3px; border-radius: 6px; opacity: 0; flex: none;
+    touch-action: none; transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .task:hover .drag-handle { opacity: 1; } }
+  .drag-handle:focus-visible { opacity: 1; }
+  .drag-handle:active { cursor: grabbing; }
+  @media (hover: none) { .drag-handle { opacity: .45; } }
+
+  .check {
+    width: 26px; height: 26px; border-radius: 50%; flex: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--cream); border: 2px solid var(--line); color: transparent;
+    transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .check:active { transform: scale(.88); }
+  .check svg { opacity: 0; transform: scale(.6); transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+  .task.done .check { background: var(--sage); border-color: var(--sage); color: #fff; }
+  .task.done .check svg { opacity: 1; transform: scale(1); }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-txt { font-size: 0.9375rem; font-weight: 600; line-height: 1.35; word-break: break-word; transition: color var(--dur-mid) var(--ease-out); }
+  .task.done .task-txt { color: var(--faint); text-decoration: line-through; }
+  .task-sub { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+  .task-sub:empty { display: none; }
+  .tag {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent-soft); padding: 2px 8px; border-radius: 20px;
+  }
+  .tag.habit { color: var(--sage); background: var(--sage-soft); }
+  .task-sub .dur { font-size: 0.8125rem; color: var(--faint); }
+
+  .note-btn, .del {
+    border: none; background: transparent; color: var(--faint); cursor: pointer;
+    line-height: 1; padding: 3px 5px; border-radius: 6px; opacity: 0; flex: none;
+    transition: color var(--dur-fast) var(--ease-hover), opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .note-btn { font-size: 0.875rem; }
+  .del { font-size: 1.0625rem; }
+  .note-btn:active, .del:active { transform: scale(.88); }
+  .task:hover .note-btn, .note-btn:focus-visible, .note-btn.has-notes,
+  .task:hover .del, .del:focus-visible { opacity: 1; }
+  .note-btn:hover { color: var(--accent-ink); }
+  .del:hover { color: var(--crit); }
+  @media (hover: none) { .note-btn, .del { opacity: .45; } .note-btn.has-notes { opacity: 1; } }
+
+  .notes-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-mid) var(--ease-out); }
+  .task.notes-open .notes-wrap { grid-template-rows: 1fr; }
+  .notes-inner { overflow: hidden; min-height: 0; padding: 0 16px; }
+  .notes-inner > :last-child { margin-bottom: 13px; }
+  .notes-inner textarea {
+    width: 100%; min-height: 60px; resize: vertical;
+    background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 9px 11px; font-size: 0.8125rem; font-family: var(--font-body); line-height: 1.5;
+  }
+  .notes-inner textarea::placeholder { color: var(--faint); }
+  .notes-inner .est-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .notes-inner .est-row label { font-size: 0.75rem; color: var(--faint); }
+  .notes-inner .est-row input {
+    width: 4.5rem; background: var(--cream); border: 1px solid var(--line); color: var(--ink);
     border-radius: 8px; padding: 6px 8px; font-size: 0.8125rem; font-family: var(--font-body);
     font-variant-numeric: tabular-nums;
   }
-  .dwt-row input:focus { outline: none; border-color: var(--month); }
-  .dwt-row .dwt-unit { font-size: 0.75rem; color: var(--ink-3); }
-  .context-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-  .context-actions button {
-    border: none; background: var(--month); color: #fff; font-weight: 700; font-size: 0.8125rem;
-    padding: 8px 18px; border-radius: 999px; cursor: pointer;
+
+  .col-empty { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 22px 12px 16px; text-align: center; }
+  .col-empty .empty-mark {
+    font-size: 1rem; line-height: 1; color: var(--accent);
+    width: 30px; height: 30px; display: grid; place-items: center;
+    border-radius: 50%; background: var(--accent-soft);
+  }
+  .col-empty .empty-copy { margin: 0; font-size: 0.84375rem; color: var(--muted); line-height: 1.45; max-width: 30ch; }
+  .col-empty .empty-cta {
+    border: 1px solid var(--line); background: var(--paper); color: var(--muted);
+    font-size: 0.78125rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .col-empty .empty-cta:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); } }
+  .col-empty .empty-cta:active { transform: scale(.97); }
+
+  .add { display: flex; gap: 9px; margin-top: 12px; }
+  .add input {
+    flex: 1; background: var(--paper); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 12px; padding: 11px 14px; font-size: 0.875rem; font-family: var(--font-body); min-width: 0;
+  }
+  .add input::placeholder { color: var(--faint); }
+  .add button {
+    border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 1.125rem;
+    width: 42px; border-radius: 12px; cursor: pointer; flex: none; line-height: 1;
     transition: transform var(--dur-fast) var(--ease-out);
   }
-  .context-actions button:active { transform: scale(.96); }
-  .context-saved { font-size: 0.75rem; color: var(--good); font-weight: 600; opacity: 0; transition: opacity var(--dur-mid) var(--ease-out); }
-  .context-saved.show { opacity: 1; }
+  .add button:active { transform: scale(.9); }
 
-  /* ---- insights ---- */
-  .insights {
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  /* ---- goal glance / goal sections ---- */
+  .glance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .gcard { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .gcard .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .gcard .ttl { font-weight: 600; font-size: 0.9375rem; }
+  .gcard .pct { font-size: 0.8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar-track { height: 7px; background: var(--line); border-radius: 6px; margin-top: 12px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; width: 100%; background: var(--accent); border-radius: 6px;
+    transform-origin: left; transform: scaleX(0);
+    transition: transform .45s var(--ease-out);
   }
-  .insights summary {
-    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    font-weight: 700; font-size: 0.875rem; list-style: none;
-  }
-  .insights summary::-webkit-details-marker { display: none; }
-  .insights summary::before { content: "📈"; font-size: 0.9375rem; }
-  .insights summary .hint { font-weight: 500; font-size: 0.75rem; color: var(--ink-3); margin-left: auto; }
-  .insights-body { padding: 0 20px 18px; }
-  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
-  @media (max-width: 620px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
-  .stat {
-    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
-    padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
-  }
-  .stat .v { font-family: var(--font-mono); font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
-  .stat .l { font-size: 0.65625rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; }
-  .wk-chart { display: flex; flex-direction: column; gap: 5px; }
-  .wk-row { display: grid; grid-template-columns: 2.2rem 1fr 1.6rem; align-items: center; gap: 8px; font-size: 0.75rem; }
-  .wk-row .d { color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
-  .wk-row .bar-track { background: var(--ring-track); border-radius: 999px; height: 8px; overflow: hidden; }
-  .wk-row .bar { height: 100%; border-radius: 999px; background: var(--month); transition: width .45s var(--ease-out); }
-  .wk-row.best .bar { background: var(--gold); }
-  .wk-row .n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
-  .insights-note { font-size: 0.75rem; color: var(--ink-3); margin-top: 12px; font-style: italic; }
+  .gcard .note { font-size: 0.8125rem; color: var(--faint); margin-top: 9px; }
 
-  /* assistant/habit-proposed marker + estimate badge */
-  .task-txt .prov { font-size: 0.75em; opacity: .8; cursor: help; margin-left: 4px; }
-  .task-txt .est { font-size: 0.75em; color: var(--ink-3); font-weight: 600; margin-left: 5px; font-variant-numeric: tabular-nums; }
-  .notes-inner .est-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-  .notes-inner .est-row label { font-size: 0.75rem; color: var(--ink-3); }
-  .notes-inner .est-row input {
-    width: 4.5rem; background: var(--panel); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 8px; padding: 6px 8px; font-size: 0.8125rem; font-family: var(--font-body);
-  }
-  .notes-inner .est-row input:focus { outline: none; border-color: var(--c); }
+  .goal-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .goal-sec { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+  .goal-sec .hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .goal-sec .hd h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; }
+  .goal-sec .hd .pct { font-size: 0.8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .goal-sec .due { font-size: 0.78125rem; color: var(--faint); margin-bottom: 12px; }
+  .goal-sec .bar-track { margin: 0 0 14px; }
+  .goal-sec .list { gap: 7px; }
+  .goal-sec .task { background: var(--cream); border-radius: 12px; }
+  .goal-sec .task-row { padding: 10px 12px; }
+  .goal-sec .check { width: 23px; height: 23px; }
+  .goal-sec .add input { background: var(--cream); }
 
   /* ---- habits ---- */
-  .habits {
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-    margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden;
+  .habit-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+  .habit-head h2 { margin: 0; font-size: 1.5rem; }
+  .btn-soft {
+    display: flex; align-items: center; gap: 7px; background: var(--accent-soft); color: var(--accent-ink);
+    border: none; padding: 11px 16px; border-radius: 11px; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
   }
-  .habits summary {
-    padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    font-weight: 700; font-size: 0.875rem; list-style: none;
-  }
-  .habits summary::-webkit-details-marker { display: none; }
-  .habits summary::before { content: "🔁"; font-size: 0.9375rem; }
-  .habits summary .hint { font-weight: 500; font-size: 0.75rem; color: var(--ink-3); margin-left: auto; }
-  .habits-body { padding: 0 20px 18px; }
-  .habits-body > p { font-size: 0.8125rem; color: var(--ink-2); line-height: 1.5; margin: 0 0 12px; max-width: 78ch; }
-  .habit-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .btn-soft:active { transform: scale(.97); }
+  .habit-list { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .habit-row {
-    display: flex; align-items: center; gap: 10px; padding: 9px 11px;
-    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
+    display: flex; align-items: center; gap: 16px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 15px; padding: 16px 20px;
+    transition: opacity var(--dur-mid) var(--ease-out);
   }
   .habit-row.paused { opacity: .55; }
-  .habit-row .h-text { flex: 1; font-size: 0.84375rem; }
-  .habit-row .h-freq { font-size: 0.6875rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
-  .habit-row .h-streak { font-size: 0.75rem; color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .habit-row button {
-    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
-    font-size: 0.9375rem; padding: 3px 5px; border-radius: 6px;
-    transition: color var(--dur-fast) var(--ease-hover);
+  .habit-row .h-main { flex: 1; min-width: 0; }
+  .habit-row .h-text { font-size: 0.96875rem; font-weight: 600; }
+  .habit-row .h-freq { font-size: 0.8125rem; color: var(--faint); margin-top: 2px; }
+  .habit-row .h-streak { display: flex; align-items: center; gap: 6px; color: var(--sage); font-weight: 600; font-size: 0.875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .habit-form {
+    display: flex; flex-direction: column; gap: 10px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 15px; padding: 16px 20px; margin-top: 14px;
+    animation: fadeUp .3s var(--ease-out) both;
   }
-  .habit-row button:hover { color: var(--month); }
-  .habit-row button.h-del:hover { color: var(--crit); }
-  .habit-form { display: flex; flex-direction: column; gap: 8px; }
   .habit-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .habit-form input[type="text"] {
-    flex: 1; min-width: 10rem; background: transparent; border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 9px 12px; font-size: 0.84375rem; font-family: var(--font-body);
+    flex: 1; min-width: 10rem; background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 11px; padding: 10px 13px; font-size: 0.875rem; font-family: var(--font-body);
   }
   .habit-form select {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 9px 10px; font-size: 0.8125rem; font-family: var(--font-body);
+    background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 11px; padding: 10px; font-size: 0.8125rem; font-family: var(--font-body);
   }
   .habit-form button[type="submit"] {
-    border: none; background: var(--month); color: #fff; font-weight: 700; font-size: 0.8125rem;
-    padding: 9px 16px; border-radius: 999px; cursor: pointer;
+    border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 0.8125rem;
+    padding: 10px 18px; border-radius: 11px; cursor: pointer;
     transition: transform var(--dur-fast) var(--ease-out);
   }
   .habit-form button[type="submit"]:active { transform: scale(.96); }
   .day-picker { display: flex; gap: 5px; }
   .day-picker button {
-    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    border: 1px solid var(--line); background: var(--cream); color: var(--muted);
     width: 2rem; height: 2rem; border-radius: 8px; font-size: 0.6875rem; font-weight: 700; cursor: pointer;
-    transition: background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
-  }
-  .day-picker button.on { background: var(--month); border-color: var(--month); color: #fff; }
-
-  /* ---- horizon grid ---- */
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-  @media (max-width: 1120px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
-
-  .col { --c: var(--month); --c-soft: var(--month-soft);
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 18px 18px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column;
-    position: relative; overflow: hidden;
-  }
-  .col.day { --c: var(--day); --c-soft: var(--day-soft); }
-  .col.week { --c: var(--week); --c-soft: var(--week-soft); }
-  .col.month { --c: var(--month); --c-soft: var(--month-soft); }
-  .col.year { --c: var(--year); --c-soft: var(--year-soft); }
-  .col::after { content:""; position:absolute; inset:0 0 auto 0; height:3px; background: var(--c); opacity:.9; }
-
-  .col-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  .col-title { display: flex; flex-direction: column; gap: 3px; }
-  .col-eyebrow { font-size: 0.6875rem; letter-spacing: .14em; text-transform: uppercase; color: var(--c); font-weight: 700; }
-  .col-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3125rem; letter-spacing: -.02em; }
-  .col-sub { font-size: 0.71875rem; color: var(--ink-3); }
-
-  .ring-wrap { position: relative; width: 62px; height: 62px; flex: none; }
-  .ring-wrap svg { transform: rotate(-90deg); }
-  .ring-wrap .pct {
-    position: absolute; inset: 0; display: grid; place-items: center;
-    font-family: var(--font-mono); font-weight: 700; font-size: 0.9375rem; font-variant-numeric: tabular-nums; color: var(--c);
-  }
-
-  .list { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-direction: column; gap: 7px; min-height: 30px; }
-  .task {
-    display: flex; flex-direction: column; overflow: hidden;
-    background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px;
-    transition: background var(--dur-fast) var(--ease-hover), opacity var(--dur-mid) var(--ease-out);
-  }
-  @media (hover: hover) and (pointer: fine) { .task:hover { background: var(--c-soft); } }
-  .task.enter { animation: taskIn var(--dur-mid) var(--ease-out); }
-  @keyframes taskIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
-  .task.dragging { transition: none; z-index: 5; box-shadow: var(--shadow); border-color: var(--c); cursor: grabbing; }
-  .task.drag-settling { transition: transform var(--dur-fast) var(--ease-out); }
-
-  .task-row { display: flex; align-items: center; gap: 11px; padding: 10px 11px; }
-  .drag-handle {
-    cursor: grab; border: none; background: transparent; color: var(--ink-3);
-    font-size: 0.875rem; line-height: 1; padding: 2px 4px; border-radius: 6px; opacity: 0; flex: none;
-    touch-action: none; transition: opacity var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-hover);
-  }
-  @media (hover: hover) and (pointer: fine) { .task:hover .drag-handle { opacity: 1; } }
-  .drag-handle:focus-visible { opacity: 1; outline: 2px solid var(--c); outline-offset: 2px; }
-  .drag-handle:active { cursor: grabbing; }
-  @media (hover: none) { .drag-handle { opacity: .55; } }
-
-  .check {
-    width: 21px; height: 21px; border-radius: 7px; border: 2px solid var(--c); flex: none;
-    cursor: pointer; display: grid; place-items: center; background: transparent; padding: 0;
-    transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
-  }
-  .check:active { transform: scale(.9); }
-  .check svg { width: 12px; height: 12px; opacity: 0; transform: scale(.5);
-    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
-  .task.done .check { background: var(--c); }
-  .task.done .check svg { opacity: 1; transform: scale(1); }
-  .check:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
-  .task-txt { flex: 1; font-size: 0.875rem; line-height: 1.35; color: var(--ink); word-break: break-word; }
-  .task.done .task-txt { color: var(--ink-3); text-decoration: line-through; }
-  .note-btn {
-    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
-    font-size: 0.8125rem; line-height: 1; padding: 2px 5px; border-radius: 6px; opacity: 0; flex: none;
-    transition: color var(--dur-fast) var(--ease-hover), opacity var(--dur-fast) var(--ease-out);
-  }
-  .task:hover .note-btn, .note-btn:focus-visible, .note-btn.has-notes { opacity: 1; }
-  .note-btn:hover { color: var(--c); }
-  @media (hover: none) { .note-btn { opacity: .55; } .note-btn.has-notes { opacity: 1; } }
-  .del {
-    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
-    font-size: 1.0625rem; line-height: 1; padding: 2px 4px; border-radius: 6px; opacity: 0;
-    transition: color var(--dur-fast) var(--ease-hover), opacity var(--dur-fast) var(--ease-out);
-  }
-  .task:hover .del, .del:focus-visible { opacity: 1; }
-  .del:hover { color: var(--crit); }
-  @media (hover: none) { .del { opacity: .55; } }
-
-  .notes-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-mid) var(--ease-out); }
-  .task.notes-open .notes-wrap { grid-template-rows: 1fr; }
-  .notes-inner { overflow: hidden; min-height: 0; padding: 0 11px; }
-  .notes-inner > :last-child { margin-bottom: 11px; }
-  .notes-inner textarea {
-    width: 100%; min-height: 60px; resize: vertical;
-    background: var(--panel); border: 1px solid var(--line); color: var(--ink);
-    border-radius: 8px; padding: 8px 10px; font-size: 0.8125rem; font-family: var(--font-body); line-height: 1.5;
-  }
-  .notes-inner textarea:focus { outline: none; border-color: var(--c); }
-  .notes-inner textarea::placeholder { color: var(--ink-3); }
-
-  .empty { font-size: 0.8125rem; color: var(--ink-3); padding: 12px 4px; text-align: center; font-style: italic; }
-  .col-empty {
-    list-style: none; display: flex; flex-direction: column; align-items: center; gap: 9px;
-    padding: 20px 12px 14px; text-align: center;
-  }
-  .col-empty .empty-mark {
-    font-size: 1rem; line-height: 1; color: var(--c);
-    width: 30px; height: 30px; display: grid; place-items: center;
-    border-radius: 50%; background: var(--c-soft);
-  }
-  .col-empty .empty-copy { margin: 0; font-size: 0.8125rem; color: var(--ink-2); line-height: 1.45; max-width: 24ch; }
-  .col-empty .empty-cta {
-    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
-    font-size: 0.78125rem; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer;
-    transition: border-color var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
-  }
-  @media (hover: hover) and (pointer: fine) { .col-empty .empty-cta:hover { border-color: var(--c); color: var(--ink); background: var(--c-soft); } }
-  .col-empty .empty-cta:active { transform: scale(.97); }
-
-  .add { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
-  .add input {
-    flex: 1; background: transparent; border: 1px solid var(--line); color: var(--ink);
-    border-radius: 10px; padding: 9px 12px; font-size: 0.84375rem; font-family: var(--font-body); min-width: 0;
-  }
-  .add input::placeholder { color: var(--ink-3); }
-  .add input:focus { outline: none; border-color: var(--c); }
-  .add button {
-    border: none; background: var(--c); color: #fff; font-weight: 700; font-size: 1.125rem;
-    width: 38px; border-radius: 10px; cursor: pointer; flex: none; line-height: 1;
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-  .add button:active { transform: scale(.9); }
-  .add button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
-  .col-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.71875rem; color: var(--ink-3); }
-  .col-foot b { color: var(--c); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-  footer { margin-top: 30px; text-align: center; font-size: 0.75rem; color: var(--ink-3); line-height: 1.6; }
-
-  /* toast for sync errors */
-  .toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
-    background: var(--panel); color: var(--ink); border: 1px solid var(--crit);
-    border-radius: 12px; padding: 11px 18px; font-size: 0.84375rem; box-shadow: var(--shadow);
-    transition: transform var(--dur-slow) var(--ease-out); z-index: 50; max-width: 90vw;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* press feedback on every remaining pressable (Emil: applies to any pressable element) */
-  .ob-back, .ob-foot button, .auth-tab, .habit-row button, .day-picker button, .signout {
     transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
   }
-  .ob-back:active, .ob-foot button:active, .auth-tab:active, .day-picker button:active { transform: scale(.97); }
-  .habit-row button:active, .signout:active { transform: scale(.92); }
-  .auth-tab:focus-visible, .ob-opt:focus-visible, .ob-back:focus-visible, .ob-foot button:focus-visible,
-  .day-picker button:focus-visible, .habit-row button:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+  .day-picker button:active { transform: scale(.94); }
+  .day-picker button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  /* panels ease open instead of snapping (closing stays instant — asymmetric timing) */
-  @keyframes panelIn { from { opacity: 0; transform: translateY(-4px); } }
-  .context[open] .context-body, .habits[open] .habits-body, .insights[open] .insights-body {
-    animation: panelIn var(--dur-mid) var(--ease-out);
+  /* ---- insights ---- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+  .stat-card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .stat-card .lbl { font-size: 0.8125rem; color: var(--muted); }
+  .stat-card .val { font-family: var(--font-display); font-size: 2.125rem; margin-top: 6px; line-height: 1; }
+  .stat-card .delta { font-size: 0.8125rem; margin-top: 8px; font-weight: 600; color: var(--faint); }
+  .panel-card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin-top: 16px; }
+  .panel-card .hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .panel-card .hd .t { font-weight: 600; font-size: 0.9375rem; }
+  .panel-card .hd .s { font-size: 0.8125rem; color: var(--muted); }
+  .wk-row { display: grid; grid-template-columns: 2.4rem 1fr 1.8rem; align-items: center; gap: 10px; font-size: 0.78125rem; margin-bottom: 7px; }
+  .wk-row .d { color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+  .wk-row .bar-track { margin: 0; }
+  .wk-row .bar-fill { background: var(--accent-soft); }
+  .wk-row.best .bar-fill { background: var(--accent); }
+  .wk-row .n { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+  .insights-note { font-size: 0.78125rem; color: var(--faint); margin-top: 14px; }
+
+  /* ---- briefing ---- */
+  .brief-card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+  .brief-card p { font-size: 0.84375rem; color: var(--muted); line-height: 1.55; margin: 0 0 12px; max-width: 66ch; }
+  .brief-card textarea {
+    width: 100%; min-height: 110px; resize: vertical;
+    background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 12px; padding: 12px 14px; font-size: 0.875rem; font-family: var(--font-body); line-height: 1.55;
+  }
+  .dwt-row { display: flex; align-items: center; gap: 9px; margin-top: 14px; flex-wrap: wrap; }
+  .dwt-row label { font-size: 0.8125rem; color: var(--muted); }
+  .dwt-row input {
+    width: 4.5rem; background: var(--cream); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 9px; padding: 7px 9px; font-size: 0.8125rem; font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .dwt-row .unit { font-size: 0.75rem; color: var(--faint); }
+  .brief-actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .brief-actions button {
+    border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 0.8125rem;
+    padding: 10px 20px; border-radius: 11px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .brief-actions button:active { transform: scale(.96); }
+  .brief-saved { font-size: 0.78125rem; color: var(--sage); font-weight: 600; opacity: 0; transition: opacity var(--dur-mid) var(--ease-out); }
+  .brief-saved.show { opacity: 1; }
+
+  /* ---- copilot dock ---- */
+  .dock {
+    width: 380px; flex: none; background: var(--paper); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .dock.entering { animation: dockIn .28s cubic-bezier(.2,.8,.2,1) both; }
+  .dock-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid var(--line); }
+  .dock-head .t { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.125rem; }
+  .dock-msgs { flex: 1; overflow-y: auto; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .msg-ai {
+    font-size: 0.90625rem; line-height: 1.55; color: var(--ink); background: var(--cream);
+    border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; padding: 14px 16px;
+  }
+  .msg-ai strong { color: var(--accent-ink); }
+  .msg-ai .h-day, .msg-ai .h-week { color: var(--accent-ink); font-weight: 600; }
+  .msg-ai .h-month { color: var(--accent); font-weight: 600; }
+  .msg-ai .h-year { color: var(--sage); font-weight: 600; }
+  .msg-me {
+    font-size: 0.90625rem; line-height: 1.5; color: #fff; background: var(--accent);
+    border-radius: 14px 14px 4px 14px; padding: 12px 15px; align-self: flex-end; max-width: 85%;
+  }
+  .dock-foot { padding: 14px 18px 18px; border-top: 1px solid var(--line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--cream); color: var(--ink);
+    padding: 8px 13px; border-radius: 20px; font-size: 0.8125rem; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover);
+  }
+  @media (hover: hover) and (pointer: fine) { .chip:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); } }
+  .chip:active { transform: scale(.96); }
+  .ask { display: flex; align-items: center; gap: 10px; background: var(--cream); border: 1px solid var(--line); border-radius: 13px; padding: 6px 6px 6px 15px; }
+  .ask input { flex: 1; border: none; background: none; outline: none; font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); min-width: 0; }
+  .ask input::placeholder { color: var(--faint); }
+  .ask button {
+    border: none; background: var(--accent); color: #fff; width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .ask button:active { transform: scale(.9); }
+
+  /* ---- toast ---- */
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(140%);
+    background: var(--paper); color: var(--ink); border: 1px solid var(--crit);
+    border-radius: 12px; padding: 11px 18px; font-size: 0.84375rem;
+    box-shadow: 0 16px 40px -20px rgba(43,39,33,.45);
+    visibility: hidden;
+    transition: transform var(--dur-slow) var(--ease-out), visibility 0s linear var(--dur-slow);
+    z-index: 50; max-width: 90vw;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); visibility: visible; transition: transform var(--dur-slow) var(--ease-out); }
+
+  /* ---- responsive ---- */
+  @media (max-width: 920px) {
+    .shell { flex-direction: column; }
+    .side { width: 100%; flex-direction: row; align-items: center; padding: 10px 14px; gap: 10px; border-right: none; border-bottom: 1px solid var(--line); }
+    .side-brand { padding: 0 6px 0 0; }
+    .side-brand .side-word { display: none; }
+    .nav { flex-direction: row; flex: 1; }
+    .nav button { width: auto; padding: 9px 11px; }
+    .nav button span { display: none; }
+    .side-bottom { margin: 0; flex-direction: row; align-items: center; gap: 8px; }
+    .streak-card { padding: 6px 11px; border-radius: 10px; }
+    .streak-card .lbl, .streak-card .sub { display: none; }
+    .streak-card .row { margin: 0; }
+    .streak-card .n { font-size: 1.125rem; }
+    .side-user .who { display: none; }
+    .main-head { padding: 16px 18px; }
+    .content { padding: 20px 16px; }
+    .dock { position: fixed; inset: 0 0 0 auto; width: min(380px, 100vw); z-index: 60; box-shadow: -18px 0 50px -30px rgba(43,39,33,.5); }
   }
 
-  /* brief eased crossfade when switching light/dark (class added by JS for ~260ms) */
-  .theme-fade, .theme-fade * { transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease !important; }
-
-  .booting .col, .booting .copilot, .booting .context { animation: rise .5s var(--ease-out) both; }
-  .booting .col.week { animation-delay: .04s; }
-  .booting .col.month { animation-delay: .08s; }
-  .booting .col.year { animation-delay: .12s; }
-  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
   @media (prefers-reduced-motion: reduce) {
-    .booting .col, .booting .copilot, .booting .context, .task.enter { animation: none; }
-    .co-orb { animation: none; }
-    .notes-wrap { transition: none; }
-    .auth-card, .ob-card, .ob-orb { animation: none; }
+    .view.entering, .dock.entering, .auth-card, .ob-card, .task.enter, .habit-form { animation: none; }
     .ob-anim #ob-eyebrow, .ob-anim #ob-question, .ob-anim #ob-options, .ob-anim #ob-deeper-form:not([hidden]) { animation: none; }
-    .context[open] .context-body, .habits[open] .habits-body, .insights[open] .insights-body { animation: none; }
-    .tbtn.theme .ic { transition: opacity var(--dur-fast) ease; }
-    .streak .flame.pop { animation: none; }
+    .streak-card .n.pop { animation: none; }
+    .notes-wrap { transition: none; }
+    .bar-fill { transition: opacity .2s ease; }
+    .iconbtn.theme .ic { transition: opacity var(--dur-fast) ease; }
   }
-  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 
+<!-- ================= AUTH ================= -->
 <div class="auth" id="auth" hidden>
   <div class="auth-card">
-    <div class="logo auth-logo" style="font-family:var(--font-display);font-weight:800;letter-spacing:-.03em;background:linear-gradient(100deg,var(--day),var(--month) 55%,var(--year));-webkit-background-clip:text;background-clip:text;color:transparent;">Horizon</div>
-    <p id="auth-tagline">Your goal command center.</p>
+    <div class="auth-logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 15 L9 9 L13 13 L20 5"/></svg>
+    </div>
+    <h1 id="auth-tagline-h">Welcome to Horizon</h1>
+    <p class="sub" id="auth-tagline">Your quiet command center for the day ahead.</p>
     <div class="auth-tabs" role="tablist">
       <button type="button" class="auth-tab active" id="auth-tab-signin" data-mode="signin" role="tab" aria-selected="true">Sign in</button>
       <button type="button" class="auth-tab" id="auth-tab-signup" data-mode="signup" role="tab" aria-selected="false">Create account</button>
@@ -636,11 +596,14 @@
   </div>
 </div>
 
+<!-- ================= ONBOARDING ================= -->
 <div class="onboarding" id="onboarding" hidden>
   <div class="ob-card" id="ob-card">
     <div class="ob-progress" id="ob-progress"></div>
     <div class="ob-head">
-      <div class="ob-orb" aria-hidden="true"></div>
+      <div class="ob-mark" aria-hidden="true">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 15 L9 9 L13 13 L20 5"/></svg>
+      </div>
       <span class="ob-eyebrow" id="ob-eyebrow">Getting set up</span>
     </div>
     <h2 class="ob-question" id="ob-question"></h2>
@@ -664,93 +627,199 @@
   </div>
 </div>
 
-<div class="wrap" id="app" hidden>
-  <header class="bar">
-    <div class="brand">
-      <div class="logo">Horizon</div>
-      <div class="tagline">Goal Command Center</div>
-    </div>
-    <div class="bar-meta">
-      <div class="datechip"><span class="d" id="today-d">—</span><span class="s" id="today-s"></span></div>
-      <div class="streak" title="Consecutive days you cleared every task in Today">
-        <span class="flame">🔥</span>
-        <span class="n" id="streak-n">0</span>
-        <span class="lbl">day streak</span>
+<!-- ================= APP ================= -->
+<div class="shell" id="app" hidden>
+
+  <aside class="side">
+    <div class="side-brand">
+      <div class="side-mark" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 15 L9 9 L13 13 L20 5"/></svg>
       </div>
-      <button class="tbtn theme" id="theme" title="Toggle light / dark" aria-label="Toggle theme">
-        <span class="ic ic-moon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
-        <span class="ic ic-sun" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+      <span class="side-word">Horizon</span>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button data-tab="today" class="active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>Today</span>
       </button>
-      <button class="signout" id="signout">sign out</button>
-    </div>
-  </header>
+      <button data-tab="goals">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg>
+        <span>Goals</span>
+      </button>
+      <button data-tab="habits">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L16 8"/><rect x="4" y="4" width="16" height="16" rx="4"/></svg>
+        <span>Habits</span>
+      </button>
+      <button data-tab="insights">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>
+        <span>Insights</span>
+      </button>
+      <button data-tab="briefing">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span>Briefing</span>
+      </button>
+    </nav>
 
-  <section class="copilot" aria-live="polite">
-    <div class="co-head">
-      <div class="co-orb" aria-hidden="true"></div>
-      <div class="co-name">Copilot <span>reads your live board</span></div>
-    </div>
-    <p class="co-msg" id="co-msg">Loading your board…</p>
-    <div class="co-actions">
-      <button class="chip" data-intent="focus">🎯 What should I focus on?</button>
-      <button class="chip" data-intent="progress">📊 How am I doing?</button>
-      <button class="chip" data-intent="motivate">⚡ Motivate me</button>
-      <button class="chip" data-intent="plan">🗓 Plan my day</button>
-      <button class="chip" data-intent="onboarding">🧭 Redo guided setup</button>
-    </div>
-    <form class="ask" id="ask-form">
-      <input id="ask-input" type="text" placeholder="Ask the copilot… (e.g. “what's left this month?”)" autocomplete="off" aria-label="Ask the copilot" />
-      <button type="submit">Ask</button>
-    </form>
-  </section>
-
-  <details class="context">
-    <summary>Assistant briefing <span class="hint">what your 7am planner knows about you</span></summary>
-    <div class="context-body">
-      <p>Your daily itinerary text is planned from this. Describe your routine, constraints, and preferences — e.g. <em>“I work 9–5. Gym Mon/Wed/Fri at 6pm. Deep work is best before noon. Keep evenings free.”</em></p>
-      <textarea id="context-text" placeholder="Tell your assistant how your days actually work…"></textarea>
-      <div class="dwt-row">
-        <label for="dwt-input">Defend this many deep-work hours/week</label>
-        <input type="number" id="dwt-input" min="0" max="80" step="1" placeholder="off" />
-        <span class="dwt-unit">hrs/week</span>
-      </div>
-      <div class="context-actions">
-        <button id="context-save">Save briefing</button>
-        <span class="context-saved" id="context-saved">Saved ✓</span>
-      </div>
-    </div>
-  </details>
-
-  <details class="habits" id="habits-panel">
-    <summary>Habits <span class="hint">recurring, tracked with their own streak</span></summary>
-    <div class="habits-body">
-      <p>A habit shows up on <strong>Today</strong> automatically on its due days — no re-adding it every morning. Checking it off grows its own streak, separate from your daily one.</p>
-      <ul class="habit-list" id="habit-list"></ul>
-      <form class="habit-form" id="habit-form">
-        <div class="habit-form-row">
-          <input type="text" id="habit-text" placeholder="e.g. 20-minute walk" maxlength="200" autocomplete="off" />
-          <select id="habit-freq">
-            <option value="daily">Daily</option>
-            <option value="weekdays">Weekdays</option>
-            <option value="custom">Custom days</option>
-          </select>
-          <button type="submit">Add habit</button>
+    <div class="side-bottom">
+      <div class="streak-card" title="Consecutive days you cleared every task in Today">
+        <div class="lbl">Streak</div>
+        <div class="row">
+          <span class="n" id="streak-n">0</span>
+          <span class="sub">days steady</span>
         </div>
-        <div class="day-picker" id="habit-days" hidden></div>
+      </div>
+      <div class="side-user">
+        <div class="avatar" id="avatar">—</div>
+        <div class="who">
+          <div class="nm" id="user-name">—</div>
+          <div class="em" id="user-email"></div>
+        </div>
+        <button class="iconbtn theme" id="theme" title="Toggle light / dark" aria-label="Toggle theme">
+          <span class="ic ic-moon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+          <span class="ic ic-sun" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+        </button>
+        <button class="iconbtn danger" id="signout" title="Sign out" aria-label="Sign out">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3M10 12H3m0 0 3-3m-3 3 3 3"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="main-head">
+      <div>
+        <div class="date" id="date-line">—</div>
+        <h1 id="greeting-line">Good morning</h1>
+      </div>
+      <button class="co-btn" id="co-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>
+        Copilot
+      </button>
+    </header>
+
+    <div class="content hz-scroll" id="content">
+
+      <!-- TODAY -->
+      <div class="view" id="view-today">
+        <section class="hero">
+          <div style="flex:1; min-width:0;">
+            <div class="eyebrow">Focus right now</div>
+            <div class="title" id="focus-title">—</div>
+            <div class="meta" id="focus-meta"></div>
+          </div>
+          <button class="go" id="focus-done">Mark done</button>
+        </section>
+
+        <div class="sec-head">
+          <h2>Your day</h2>
+          <span class="count" id="day-count"></span>
+        </div>
+        <ul class="list" id="day-list" data-hid="day"></ul>
+        <form class="add" data-add="day">
+          <input type="text" placeholder="Add a task for today…" aria-label="Add to Today" maxlength="200" autocomplete="off" />
+          <button type="submit" aria-label="Add">+</button>
+        </form>
+
+        <div class="sec-head">
+          <h2>Moving toward</h2>
+        </div>
+        <div class="glance-grid" id="glance"></div>
+      </div>
+
+      <!-- GOALS -->
+      <div class="view wide" id="view-goals" hidden>
+        <h2 style="margin:0; font-size:1.5rem;">Goals</h2>
+        <p class="view-sub">The bigger picture your days add up to.</p>
+        <div class="goal-sections" id="goal-sections"></div>
+      </div>
+
+      <!-- HABITS -->
+      <div class="view" id="view-habits" hidden>
+        <div class="habit-head">
+          <div>
+            <h2>Habits</h2>
+            <p class="view-sub" style="margin-bottom:0;">Small things, kept steady. Each keeps its own streak.</p>
+          </div>
+          <button class="btn-soft" id="habit-new">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            New habit
+          </button>
+        </div>
+        <form class="habit-form" id="habit-form" hidden>
+          <div class="habit-form-row">
+            <input type="text" id="habit-text" placeholder="e.g. 20-minute walk" maxlength="200" autocomplete="off" />
+            <select id="habit-freq">
+              <option value="daily">Daily</option>
+              <option value="weekdays">Weekdays</option>
+              <option value="custom">Custom days</option>
+            </select>
+            <button type="submit">Add habit</button>
+          </div>
+          <div class="day-picker" id="habit-days" hidden></div>
+        </form>
+        <ul class="habit-list" id="habit-list"></ul>
+        <p class="insights-note">A habit shows up on <strong>Today</strong> automatically on its due days. Checking it off there grows its streak.</p>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="view" id="view-insights" hidden>
+        <h2 style="margin:0; font-size:1.5rem;">Insights</h2>
+        <p class="view-sub">Your last 30 days, measured honestly.</p>
+        <div id="insights-body"><p class="insights-note">Loading…</p></div>
+      </div>
+
+      <!-- BRIEFING -->
+      <div class="view" id="view-briefing" hidden>
+        <h2 style="margin:0; font-size:1.5rem;">Assistant briefing</h2>
+        <p class="view-sub">What your 7am planner knows about you.</p>
+        <div class="brief-card">
+          <p>Your daily itinerary is planned from this. Describe your routine, constraints, and preferences — e.g. <em>“I work 9–5. Gym Mon/Wed/Fri at 6pm. Deep work is best before noon. Keep evenings free.”</em></p>
+          <textarea id="context-text" placeholder="Tell your assistant how your days actually work…"></textarea>
+          <div class="dwt-row">
+            <label for="dwt-input">Defend this many deep-work hours/week</label>
+            <input type="number" id="dwt-input" min="0" max="80" step="1" placeholder="off" />
+            <span class="unit">hrs/week</span>
+          </div>
+          <div class="brief-actions">
+            <button id="context-save">Save briefing</button>
+            <span class="brief-saved" id="context-saved">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- COPILOT DOCK -->
+  <aside class="dock" id="dock" hidden>
+    <div class="dock-head">
+      <div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/></svg>
+        Copilot
+      </div>
+      <button class="iconbtn" id="dock-close" aria-label="Close copilot">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="dock-msgs hz-scroll" id="dock-msgs" aria-live="polite"></div>
+    <div class="dock-foot">
+      <div class="chips">
+        <button class="chip" data-intent="focus">What should I focus on?</button>
+        <button class="chip" data-intent="progress">How am I doing?</button>
+        <button class="chip" data-intent="motivate">Motivate me</button>
+        <button class="chip" data-intent="plan">Plan my day</button>
+        <button class="chip" data-intent="onboarding">Redo guided setup</button>
+      </div>
+      <form class="ask" id="ask-form">
+        <input id="ask-input" type="text" placeholder="Ask your copilot…" autocomplete="off" aria-label="Ask the copilot" />
+        <button type="submit" aria-label="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </button>
       </form>
     </div>
-  </details>
+  </aside>
 
-  <details class="insights" id="insights">
-    <summary>Insights <span class="hint">your last 30 days, measured honestly</span></summary>
-    <div class="insights-body" id="insights-body"><p class="insights-note">Loading…</p></div>
-  </details>
-
-  <main class="grid" id="grid"></main>
-
-  <footer>
-    Synced to your Horizon account — same board on every device. Your assistant plans your day from this board every morning at 7.
-  </footer>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
@@ -765,21 +834,21 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
 
 const HORIZONS = [
-  { id: "day",   eyebrow: "Right now",        name: "Today",      sub: "clear it, keep the streak" },
-  { id: "week",  eyebrow: "This cycle",       name: "This Week",  sub: "the short game" },
-  { id: "month", eyebrow: "The medium stretch", name: "This Month", sub: "the medium game" },
-  { id: "year",  eyebrow: "The long arc",     name: "This Year",  sub: "who you're becoming" }
+  { id: "day",   name: "Today" },
+  { id: "week",  name: "This Week",  due: "resets Monday" },
+  { id: "month", name: "This Month", due: "resets on the 1st" },
+  { id: "year",  name: "This Year",  due: "the long arc" }
 ];
 const ADD_PLACEHOLDER = { day: "task for today", week: "goal for this week", month: "goal for this month", year: "goal for this year" };
 
 let state = { day: [], week: [], month: [], year: [] };
 let habits = [];
 let profile = { streak: 0, last_complete: null, context: "" };
-let lastPct = { day: 0, week: 0, month: 0, year: 0 };
 let justAddedId = null;
 const expandedNotes = new Set();
 let drag = null;
 let booted = false;
+let currentTab = "today";
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- dates (local timezone) ---------- */
@@ -791,7 +860,7 @@ function periodFor(h) {
   const d = new Date();
   if (h === "day") return localYMD(d);
   if (h === "week") {
-    const dow = d.getDay(); // 0 Sun..6 Sat
+    const dow = d.getDay();
     const diffToMonday = dow === 0 ? -6 : 1 - dow;
     const monday = new Date(d);
     monday.setDate(d.getDate() + diffToMonday);
@@ -818,7 +887,7 @@ function toast(msg) {
 const authView = document.getElementById("auth");
 const onboardingView = document.getElementById("onboarding");
 const appView = document.getElementById("app");
-let authMode = "signin"; // "signin" | "signup"
+let authMode = "signin";
 
 if (DEMO) {
   const banner = document.createElement("div");
@@ -828,22 +897,21 @@ if (DEMO) {
   authView.hidden = true;
   if (new URLSearchParams(location.search).get("onboarding") === "1") {
     onboardingView.hidden = false;
-    queueMicrotask(obStart); // obStart/obRender reference consts declared later in module-evaluation order
+    queueMicrotask(obStart);
   } else {
     appView.hidden = false;
     queueMicrotask(boot);
   }
 } else {
   sb.auth.onAuthStateChange((_event, session) => {
-    if (session) { authView.hidden = true; routeAfterAuth(); }
+    if (session) { authView.hidden = true; routeAfterAuth(session); }
     else { appView.hidden = true; onboardingView.hidden = true; authView.hidden = false; }
   });
 }
 
-// Questions come before the dashboard: a brand-new account (zero goals, no
-// dismissal on file) sees the guided setup first; the grid/streak/date only
-// appear once that's done or explicitly deferred.
-async function routeAfterAuth() {
+let sessionEmail = "";
+async function routeAfterAuth(session) {
+  sessionEmail = session?.user?.email || "";
   const skipped = localStorage.getItem("horizon.onboarding.done") === "1";
   let hasGoals = true;
   if (!skipped) {
@@ -872,7 +940,7 @@ function setAuthMode(mode) {
   document.getElementById("auth-password").autocomplete = signup ? "new-password" : "current-password";
   document.getElementById("auth-tagline").textContent = signup
     ? "Create your account — we'll email you a link to confirm it."
-    : "Your goal command center.";
+    : "Your quiet command center for the day ahead.";
   document.getElementById("auth-error").textContent = "";
   document.getElementById("auth-note").textContent = signup
     ? "Password must be at least 8 characters."
@@ -901,7 +969,7 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
     const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
     btn.disabled = false; btn.textContent = "Create account";
     if (error) { errEl.textContent = error.message; return; }
-    if (data.session) { return; } // confirmation disabled on this project — onAuthStateChange handles it
+    if (data.session) { return; }
     noteEl.innerHTML = '<span class="auth-sent">Check your email — click the link to confirm your account, then come back here and sign in.</span>';
     setAuthMode("signin");
   } else {
@@ -925,10 +993,8 @@ document.getElementById("signout").addEventListener("click", async () => {
 /* ---------- data ---------- */
 async function loadBoard() {
   const today = periodFor("day");
-  // materialize today's due recurring habits before reading the board
   const { error: syncErr } = await sb.rpc("sync_todays_habits", { p_today: today });
   if (syncErr) toast("Couldn't sync habits: " + syncErr.message);
-  // roll unfinished day tasks forward to today
   const { error: rollErr } = await sb.from("goals")
     .update({ period: today })
     .eq("horizon", "day").eq("done", false).lt("period", today);
@@ -952,7 +1018,6 @@ async function loadBoard() {
     const ins = await sb.from("profiles").insert({}).select().single();
     if (!ins.error) profile = ins.data;
   }
-  // lapsed streak?
   if (profile.last_complete && daysBetween(profile.last_complete, today) >= 2 && profile.streak !== 0) {
     profile.streak = 0;
     sb.from("profiles").update({ streak: 0 }).eq("user_id", profile.user_id).then(() => {});
@@ -975,40 +1040,24 @@ async function addGoal(hid, text) {
   }
   state[hid].push(data);
   justAddedId = data.id;
-  render();
+  renderBoard();
   justAddedId = null;
-  // render() rebuilt the form, dropping focus after the network round-trip —
-  // put the caret back so rapid entry keeps flowing (skip while grid is hidden)
   if (!appView.hidden) {
-    const inp = grid.querySelector('.col.' + hid + ' form[data-add] input');
+    const inp = document.querySelector('form[data-add="' + hid + '"] input');
     if (inp) inp.focus({ preventScroll: true });
   }
 }
 
-// Update the toggled task in place instead of rebuilding the grid — a rebuilt
-// node mounts already-done, so the check/strikethrough transitions never play.
+// In-place toggle so the check/strikethrough transitions actually play.
 function applyToggleUI(hid, id) {
   const t = state[hid].find(x => x.id === id);
-  const li = grid.querySelector('.task[data-id="' + id + '"]');
-  if (!t || !li) { render(); return; }
+  const li = document.querySelector('.task[data-id="' + id + '"]');
+  if (!t || !li) { renderBoard(); return; }
   li.classList.toggle("done", t.done);
   const check = li.querySelector(".check");
   check.setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
   check.setAttribute("aria-pressed", String(t.done));
-  updateColMeta(hid);
-}
-function updateColMeta(hid) {
-  const col = grid.querySelector(".col." + hid);
-  if (!col) return;
-  const s = stat(hid);
-  const C = 2 * Math.PI * 26;
-  const ring = col.querySelectorAll("circle")[1];
-  if (ring) ring.style.strokeDashoffset = (C * (1 - s.pct / 100)).toFixed(1);
-  lastPct[hid] = s.pct;
-  col.querySelector(".pct").textContent = s.pct;
-  const foot = col.querySelector(".col-foot");
-  foot.querySelector("span").textContent = s.total ? s.done + " of " + s.total + " done" : "nothing here yet";
-  foot.querySelector("b").textContent = s.left + " left";
+  updateMeta();
 }
 
 async function toggleGoal(hid, id) {
@@ -1027,24 +1076,21 @@ async function toggleGoal(hid, id) {
 async function removeGoal(hid, id) {
   const prev = state[hid];
   state[hid] = prev.filter(x => x.id !== id);
-  // collapse the row out before re-rendering — deletions shouldn't just blink away
-  const li = grid.querySelector('.task[data-id="' + id + '"]');
+  const li = document.querySelector('.task[data-id="' + id + '"]');
   if (li && !reduceMotion && li.animate) {
     li.style.pointerEvents = "none";
     li.style.overflow = "hidden";
     const h = li.offsetHeight;
     const anim = li.animate(
       [{ opacity: 1, transform: "scale(1)", height: h + "px", marginBottom: "0px" },
-       { opacity: 0, transform: "scale(.96)", height: "0px", marginBottom: "-7px" }],
+       { opacity: 0, transform: "scale(.96)", height: "0px", marginBottom: "-9px" }],
       { duration: 200, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" });
-    // don't trust anim.finished alone — throttled/hidden tabs can stall the
-    // animation timeline, and the delete must land regardless
     await Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 300))]);
   }
-  render();
+  renderBoard();
   if (!DEMO) {
     const { error } = await sb.from("goals").delete().eq("id", id);
-    if (error) { state[hid] = prev; render(); toast("Couldn't delete: " + error.message); }
+    if (error) { state[hid] = prev; renderBoard(); toast("Couldn't delete: " + error.message); }
   }
 }
 
@@ -1085,23 +1131,25 @@ function freqLabel(h) {
   if (h.freq === "daily") return "Daily";
   if (h.freq === "weekdays") return "Weekdays";
   const names = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-  return (h.days || []).slice().sort().map(d => names[d]).join(" ") || "Custom";
+  return (h.days || []).slice().sort().map(d => names[d]).join(" · ") || "Custom";
 }
 
 function renderHabits() {
   const ul = document.getElementById("habit-list");
-  if (!habits.length) { ul.innerHTML = '<li class="empty" style="padding:8px 4px">No habits yet — add one below and it'
-    + '&#39;ll start appearing on Today.</li>'; return; }
+  if (!habits.length) {
+    ul.innerHTML = '<li class="col-empty"><span class="empty-mark" aria-hidden="true">✦</span>' +
+      '<p class="empty-copy">No habits yet — add one and it starts appearing on Today.</p></li>';
+    return;
+  }
   ul.innerHTML = "";
   habits.forEach(h => {
     const li = document.createElement("li");
     li.className = "habit-row" + (h.active ? "" : " paused");
     li.innerHTML =
-      '<span class="h-text"></span>' +
-      '<span class="h-freq"></span>' +
-      '<span class="h-streak">🔥 ' + (h.streak || 0) + '</span>' +
-      '<button class="h-toggle" title="' + (h.active ? "Pause" : "Resume") + '">' + (h.active ? "⏸" : "▶") + '</button>' +
-      '<button class="h-del" title="Delete">×</button>';
+      '<div class="h-main"><div class="h-text"></div><div class="h-freq"></div></div>' +
+      '<span class="h-streak"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3 4 4 4 8a4 4 0 0 1-8 0c0-1 .3-1.8.7-2.5C9 8 9.5 9 10.5 9 10 6.5 11 3.5 12 2z"/></svg>' + (h.streak || 0) + '</span>' +
+      '<button class="iconbtn h-toggle" title="' + (h.active ? "Pause" : "Resume") + '">' + (h.active ? "⏸" : "▶") + '</button>' +
+      '<button class="iconbtn danger h-del" title="Delete">×</button>';
     li.querySelector(".h-text").textContent = h.text;
     li.querySelector(".h-freq").textContent = freqLabel(h);
     li.querySelector(".h-toggle").addEventListener("click", () => toggleHabitActive(h.id));
@@ -1143,6 +1191,11 @@ async function deleteHabit(id) {
   if (error) { habits = prev; renderHabits(); toast("Couldn't delete habit: " + error.message); }
 }
 
+document.getElementById("habit-new").addEventListener("click", () => {
+  const f = document.getElementById("habit-form");
+  f.hidden = !f.hidden;
+  if (!f.hidden) document.getElementById("habit-text").focus();
+});
 document.getElementById("habit-freq").addEventListener("change", (e) => {
   document.getElementById("habit-days").hidden = e.target.value !== "custom";
 });
@@ -1167,19 +1220,18 @@ document.getElementById("habit-form").addEventListener("submit", (e) => {
   document.querySelectorAll("#habit-days button.on").forEach(b => b.classList.remove("on"));
 });
 
-// One-shot sparkle burst on the streak flame when the day is cleared — rare +
-// celebratory is exactly where a flourish earns its place (ported from Amicro).
+/* ---------- streak ---------- */
 function sparkleStreak() {
   if (reduceMotion) return;
-  const flame = document.querySelector(".streak .flame");
-  if (!flame || !flame.animate) return;
-  flame.classList.remove("pop"); void flame.offsetWidth; flame.classList.add("pop");
+  const n = document.querySelector(".streak-card .n");
+  if (!n || !n.animate) return;
+  n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
   const N = 7;
   for (let i = 0; i < N; i++) {
     const s = document.createElement("span");
     s.className = "spark";
     s.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.6-6.2-4.5-6.2 4.5 2.4-7.6L2 9.6h7.6z"/></svg>';
-    flame.appendChild(s);
+    n.appendChild(s);
     const ang = (Math.PI * 2 * i) / N + (i % 2 ? 0.45 : 0);
     const dist = 15 + (i % 3) * 6;
     const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 3;
@@ -1207,10 +1259,10 @@ async function maybeAdvanceStreak() {
       .eq("user_id", profile.user_id);
     if (error) toast("Couldn't save streak: " + error.message);
   }
-  speak("🔥 <strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Your 7am text tomorrow will know it.");
+  speak("<strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Your 7am plan tomorrow will know it.");
 }
 
-/* ---------- context (assistant briefing) ---------- */
+/* ---------- briefing ---------- */
 function readDwtInput() {
   const raw = document.getElementById("dwt-input").value.trim();
   if (!raw) return null;
@@ -1243,11 +1295,6 @@ function stat(k) {
   return { total, done, pct: total ? Math.round(done / total * 100) : 0, left: total - done };
 }
 
-const grid = document.getElementById("grid");
-
-// Which horizons sit "above" each one on the ladder (broad → narrow). Used to
-// tailor an empty column's nudge: if a bigger goal exists, invite laddering
-// down from it; if not, ask the open question for that horizon.
 const BROADER_OF = { day: ["week", "month", "year"], week: ["month", "year"], month: ["year"], year: [] };
 function emptyCopy(hid, hasBroader) {
   if (hid === "year") return { line: "Name the long game — who are you becoming this year?", cta: "Set a yearly goal" };
@@ -1262,62 +1309,12 @@ function emptyCopy(hid, hasBroader) {
     : { line: "Start small — one thing you'll actually do today.", cta: "Add today's first task" };
 }
 
-function render() {
-  renderDate();
-  document.getElementById("streak-n").textContent = profile.streak;
-  grid.innerHTML = "";
-  HORIZONS.forEach(h => {
-    const s = stat(h.id);
-    const col = document.createElement("section");
-    col.className = "col " + h.id;
-    col.dataset.hid = h.id;
-    const C = 2 * Math.PI * 26;
-    const newOff = C * (1 - s.pct / 100);
-    const startOff = reduceMotion ? newOff : C * (1 - lastPct[h.id] / 100);
-    lastPct[h.id] = s.pct;
-
-    col.innerHTML =
-      '<div class="col-head">' +
-        '<div class="col-title">' +
-          '<span class="col-eyebrow">' + h.eyebrow + '</span>' +
-          '<span class="col-name">' + h.name + '</span>' +
-          '<span class="col-sub">' + h.sub + '</span>' +
-        '</div>' +
-        '<div class="ring-wrap">' +
-          '<svg width="62" height="62" viewBox="0 0 62 62">' +
-            '<circle cx="31" cy="31" r="26" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle>' +
-            '<circle cx="31" cy="31" r="26" fill="none" stroke="var(--c)" stroke-width="6" stroke-linecap="round" ' +
-              'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + startOff.toFixed(1) + '" style="transition:stroke-dashoffset .45s var(--ease-out)"></circle>' +
-          '</svg>' +
-          '<span class="pct">' + s.pct + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<ul class="list"></ul>' +
-      '<form class="add" data-add="' + h.id + '">' +
-        '<input type="text" placeholder="Add a ' + ADD_PLACEHOLDER[h.id] + '…" aria-label="Add to ' + h.name + '" maxlength="200" autocomplete="off" />' +
-        '<button type="submit" aria-label="Add">+</button>' +
-      '</form>' +
-      '<div class="col-foot"><span>' + (s.total ? s.done + " of " + s.total + " done" : "nothing here yet") + '</span><b>' + s.left + ' left</b></div>';
-
-    grid.appendChild(col);
-
-    if (!reduceMotion && startOff !== newOff) {
-      const ring = col.querySelectorAll("circle")[1];
-      requestAnimationFrame(() => requestAnimationFrame(() => { ring.style.strokeDashoffset = newOff.toFixed(1); }));
-    }
-
-    const ul = col.querySelector("ul");
-    if (!s.total) {
-      const hasBroader = BROADER_OF[h.id].some(k => stat(k).total > 0);
-      const ec = emptyCopy(h.id, hasBroader);
-      ul.innerHTML =
-        '<li class="col-empty">' +
-          '<span class="empty-mark" aria-hidden="true">✦</span>' +
-          '<p class="empty-copy">' + ec.line + '</p>' +
-          '<button type="button" class="empty-cta">' + ec.cta + ' →</button>' +
-        '</li>';
-    } else state[h.id].forEach(task => ul.appendChild(taskEl(h.id, task)));
-  });
+function emptyLi(hid) {
+  return '<li class="col-empty">' +
+    '<span class="empty-mark" aria-hidden="true">✦</span>' +
+    '<p class="empty-copy">' + emptyCopy(hid, BROADER_OF[hid].some(k => stat(k).total > 0)).line + '</p>' +
+    '<button type="button" class="empty-cta" data-focus-add="' + hid + '">' + emptyCopy(hid, BROADER_OF[hid].some(k => stat(k).total > 0)).cta + ' →</button>' +
+  '</li>';
 }
 
 function taskEl(hid, task) {
@@ -1330,9 +1327,9 @@ function taskEl(hid, task) {
     '<div class="task-row">' +
       '<button class="drag-handle" aria-label="Drag to reorder" title="Drag to reorder" tabindex="0">⠿</button>' +
       '<button class="check" aria-label="' + (task.done ? "Mark not done" : "Mark done") + '" aria-pressed="' + task.done + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg>' +
       '</button>' +
-      '<span class="task-txt"></span>' +
+      '<div class="task-body"><div class="task-txt"></div><div class="task-sub"></div></div>' +
       '<button class="note-btn' + (hasNotes ? " has-notes" : "") + '" aria-label="' + (hasNotes ? "Edit note" : "Add note") + '" aria-expanded="' + open + '" title="Notes">📝</button>' +
       '<button class="del" aria-label="Delete task" title="Delete">×</button>' +
     '</div>' +
@@ -1341,20 +1338,17 @@ function taskEl(hid, task) {
       '<div class="est-row"><label>Estimate</label><input type="number" min="1" max="600" placeholder="min" class="est-input" aria-label="Estimate in minutes" /></div>' +
     '</div></div>';
   li.querySelector(".task-txt").textContent = task.text;
+
+  const sub = li.querySelector(".task-sub");
   if (task.source === "assistant") {
-    const prov = document.createElement("span");
-    prov.className = "prov"; prov.title = "Proposed by your planner"; prov.textContent = "✨";
-    li.querySelector(".task-txt").appendChild(prov);
+    const t = document.createElement("span"); t.className = "tag"; t.title = "Proposed by your planner"; t.textContent = "Planner"; sub.appendChild(t);
   } else if (task.source === "habit") {
-    const prov = document.createElement("span");
-    prov.className = "prov"; prov.title = "Recurring habit"; prov.textContent = "🔁";
-    li.querySelector(".task-txt").appendChild(prov);
+    const t = document.createElement("span"); t.className = "tag habit"; t.title = "Recurring habit"; t.textContent = "Habit"; sub.appendChild(t);
   }
   if (task.estimate_min) {
-    const est = document.createElement("span");
-    est.className = "est"; est.textContent = "⏱" + task.estimate_min + "m";
-    li.querySelector(".task-txt").appendChild(est);
+    const d = document.createElement("span"); d.className = "dur"; d.textContent = task.estimate_min + " min"; sub.appendChild(d);
   }
+
   li.querySelector(".check").addEventListener("click", () => toggleGoal(hid, task.id));
   li.querySelector(".del").addEventListener("click", () => removeGoal(hid, task.id));
 
@@ -1382,10 +1376,10 @@ function taskEl(hid, task) {
     const v = estInput.value.trim();
     const minutes = v ? Math.max(1, Math.min(600, Math.round(Number(v)))) : null;
     saveEstimate(hid, task.id, minutes);
-    const badge = li.querySelector(".task-txt .est");
+    let badge = li.querySelector(".task-sub .dur");
     if (minutes) {
-      if (badge) badge.textContent = "⏱" + minutes + "m";
-      else { const est = document.createElement("span"); est.className = "est"; est.textContent = "⏱" + minutes + "m"; li.querySelector(".task-txt").appendChild(est); }
+      if (badge) badge.textContent = minutes + " min";
+      else { badge = document.createElement("span"); badge.className = "dur"; badge.textContent = minutes + " min"; li.querySelector(".task-sub").appendChild(badge); }
     } else if (badge) badge.remove();
   };
   estInput.addEventListener("input", () => { clearTimeout(estTimer); estTimer = setTimeout(commitEstimate, 500); });
@@ -1394,15 +1388,107 @@ function taskEl(hid, task) {
   return li;
 }
 
-function renderDate() {
-  const d = new Date();
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  document.getElementById("today-d").textContent = days[d.getDay()];
-  document.getElementById("today-s").textContent = mon[d.getMonth()] + " " + d.getDate() + " · " + d.getFullYear();
+function setBar(el, pct) {
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = "scaleX(" + (pct / 100) + ")"; }));
 }
 
-grid.addEventListener("submit", (e) => {
+// Focus hero + counts + progress bars, updated in place (no list rebuild).
+function updateMeta() {
+  const d = stat("day");
+  document.getElementById("day-count").textContent = d.total ? d.done + " of " + d.total + " done" : "nothing here yet";
+  const next = state.day.find(t => !t.done);
+  document.getElementById("focus-title").textContent = next ? next.text : (d.total ? "All clear — you did it all" : "Set your first task below");
+  const meta = [];
+  if (next) {
+    if (next.source === "assistant") meta.push("Planner");
+    else if (next.source === "habit") meta.push("Habit");
+    if (next.estimate_min) meta.push(next.estimate_min + " min");
+    meta.push(d.left + " of " + d.total + " left today");
+  }
+  document.getElementById("focus-meta").textContent = next ? meta.join(" · ") : (d.total ? "Nothing left on the board. Rest well." : "Your 7am plan works from this board.");
+  document.getElementById("focus-done").style.visibility = next ? "visible" : "hidden";
+
+  ["week", "month", "year"].forEach(k => {
+    const s = stat(k);
+    const card = document.querySelector('.gcard[data-hid="' + k + '"]');
+    if (card) {
+      card.querySelector(".pct").textContent = s.pct + "%";
+      card.querySelector(".note").textContent = s.total ? s.left + " open · " + s.done + " done" : "nothing here yet";
+      card.querySelector(".bar-fill").style.transform = "scaleX(" + (s.pct / 100) + ")";
+    }
+    const sec = document.querySelector('.goal-sec[data-hid="' + k + '"]');
+    if (sec) {
+      sec.querySelector(".pct").textContent = s.total ? s.pct + "% · " + s.left + " left" : "empty";
+      sec.querySelector(".bar-fill").style.transform = "scaleX(" + (s.pct / 100) + ")";
+    }
+  });
+}
+
+function renderBoard() {
+  // Today list
+  const dayUl = document.getElementById("day-list");
+  dayUl.innerHTML = "";
+  if (!state.day.length) dayUl.innerHTML = emptyLi("day");
+  else state.day.forEach(t => dayUl.appendChild(taskEl("day", t)));
+
+  // Moving-toward glance
+  const glance = document.getElementById("glance");
+  glance.innerHTML = "";
+  ["week", "month", "year"].forEach(k => {
+    const s = stat(k);
+    const h = HORIZONS.find(x => x.id === k);
+    const card = document.createElement("div");
+    card.className = "gcard";
+    card.dataset.hid = k;
+    card.innerHTML =
+      '<div class="top"><span class="ttl">' + h.name + '</span><span class="pct">' + s.pct + '%</span></div>' +
+      '<div class="bar-track"><div class="bar-fill"></div></div>' +
+      '<div class="note">' + (s.total ? s.left + " open · " + s.done + " done" : "nothing here yet") + '</div>';
+    glance.appendChild(card);
+    setBar(card.querySelector(".bar-fill"), s.pct);
+  });
+
+  // Goals view sections
+  const secs = document.getElementById("goal-sections");
+  secs.innerHTML = "";
+  ["week", "month", "year"].forEach(k => {
+    const s = stat(k);
+    const h = HORIZONS.find(x => x.id === k);
+    const sec = document.createElement("section");
+    sec.className = "goal-sec";
+    sec.dataset.hid = k;
+    sec.innerHTML =
+      '<div class="hd"><h3>' + h.name + '</h3><span class="pct">' + (s.total ? s.pct + "% · " + s.left + " left" : "empty") + '</span></div>' +
+      '<div class="due">' + h.due + '</div>' +
+      '<div class="bar-track"><div class="bar-fill"></div></div>' +
+      '<ul class="list" data-hid="' + k + '"></ul>' +
+      '<form class="add" data-add="' + k + '"><input type="text" placeholder="Add a ' + ADD_PLACEHOLDER[k] + '…" aria-label="Add to ' + h.name + '" maxlength="200" autocomplete="off" /><button type="submit" aria-label="Add">+</button></form>';
+    secs.appendChild(sec);
+    setBar(sec.querySelector(".bar-fill"), s.pct);
+    const ul = sec.querySelector("ul");
+    if (!s.total) ul.innerHTML = emptyLi(k);
+    else state[k].forEach(t => ul.appendChild(taskEl(k, t)));
+  });
+
+  updateMeta();
+}
+
+function renderChrome() {
+  const d = new Date();
+  document.getElementById("date-line").textContent =
+    d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const email = DEMO ? "demo@horizon.app" : sessionEmail;
+  const prefix = (email.split("@")[0] || "you");
+  const nice = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  document.getElementById("greeting-line").textContent = greeting() + ", " + nice;
+  document.getElementById("user-name").textContent = nice;
+  document.getElementById("user-email").textContent = email;
+  document.getElementById("avatar").textContent = prefix.slice(0, 2).toUpperCase();
+  document.getElementById("streak-n").textContent = profile.streak;
+}
+
+/* ---------- add + empty CTA (delegated) ---------- */
+document.getElementById("content").addEventListener("submit", (e) => {
   if (e.target.matches("form[data-add]")) {
     e.preventDefault();
     const input = e.target.querySelector("input");
@@ -1411,30 +1497,37 @@ grid.addEventListener("submit", (e) => {
     input.focus();
   }
 });
-
-// Empty-column CTA drops focus straight into that column's add-input.
-grid.addEventListener("click", (e) => {
-  const cta = e.target.closest(".empty-cta");
+document.getElementById("content").addEventListener("click", (e) => {
+  const cta = e.target.closest("[data-focus-add]");
   if (!cta) return;
-  const input = cta.closest(".col").querySelector("form[data-add] input");
+  const hid = cta.getAttribute("data-focus-add");
+  const input = document.querySelector('form[data-add="' + hid + '"] input');
   if (input) input.focus();
+});
+document.getElementById("focus-done").addEventListener("click", () => {
+  const next = state.day.find(t => !t.done);
+  if (next) toggleGoal("day", next.id);
 });
 
 /* ---------- drag to reorder ---------- */
 function listGapPx(ul) {
   const cs = getComputedStyle(ul);
-  return parseFloat(cs.rowGap || cs.gap || "7") || 7;
+  return parseFloat(cs.rowGap || cs.gap || "9") || 9;
+}
+function rubberband(overshoot, dimension, constant) {
+  constant = constant || 0.55;
+  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
 }
 
-grid.addEventListener("pointerdown", (e) => {
+const content = document.getElementById("content");
+content.addEventListener("pointerdown", (e) => {
   if (drag) return;
   const handle = e.target.closest(".drag-handle");
   if (!handle) return;
   const li = handle.closest(".task");
   const ul = li.parentElement;
-  const col = ul.closest(".col");
-  const hid = col.dataset.hid;
-  if (state[hid].length < 2) return;
+  const hid = ul.dataset.hid;
+  if (!hid || state[hid].length < 2) return;
 
   const items = Array.from(ul.querySelectorAll(":scope > .task"));
   const gap = listGapPx(ul);
@@ -1453,13 +1546,7 @@ grid.addEventListener("pointerdown", (e) => {
   e.preventDefault();
 });
 
-// Apple-style rubber-band: past the list's ends the row follows less and less
-function rubberband(overshoot, dimension, constant) {
-  constant = constant || 0.55;
-  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
-}
-
-grid.addEventListener("pointermove", (e) => {
+content.addEventListener("pointermove", (e) => {
   if (!drag || e.pointerId !== drag.pointerId) return;
   let dy = e.clientY - drag.startY;
   const origIdx = drag.originalIndex[drag.li.dataset.id];
@@ -1527,27 +1614,46 @@ function endDrag(commit) {
     state[hid].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
     state[hid].forEach((t, i) => { t.position = i; });
     persistPositions(hid);
-    setTimeout(() => { cleanup(); render(); }, settleDur);
+    setTimeout(() => { cleanup(); renderBoard(); }, settleDur);
   } else {
     setTimeout(cleanup, settleDur);
   }
   drag = null;
 }
 
-grid.addEventListener("pointerup", (e) => { if (drag && e.pointerId === drag.pointerId) endDrag(true); });
-grid.addEventListener("pointercancel", (e) => { if (drag && e.pointerId === drag.pointerId) endDrag(false); });
+content.addEventListener("pointerup", (e) => { if (drag && e.pointerId === drag.pointerId) endDrag(true); });
+content.addEventListener("pointercancel", (e) => { if (drag && e.pointerId === drag.pointerId) endDrag(false); });
 
 /* ---------- copilot ---------- */
-const coMsg = document.getElementById("co-msg");
-function speak(html) {
-  coMsg.innerHTML = html;
-  if (!reduceMotion && coMsg.animate) {
-    coMsg.animate(
-      [{ opacity: 0.25, filter: "blur(3px)" }, { opacity: 1, filter: "blur(0px)" }],
-      { duration: 190, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
-    );
+const dock = document.getElementById("dock");
+const dockMsgs = document.getElementById("dock-msgs");
+let dockOpen = false;
+
+function setDock(open) {
+  dockOpen = open;
+  dock.hidden = !open;
+  if (open) {
+    dock.classList.remove("entering"); void dock.offsetWidth; dock.classList.add("entering");
+    dockMsgs.scrollTop = dockMsgs.scrollHeight;
   }
 }
+document.getElementById("co-toggle").addEventListener("click", () => setDock(!dockOpen));
+document.getElementById("dock-close").addEventListener("click", () => setDock(false));
+
+function bubble(html, mine) {
+  const div = document.createElement("div");
+  div.className = mine ? "msg-me" : "msg-ai";
+  if (mine) div.textContent = html; else div.innerHTML = html;
+  dockMsgs.appendChild(div);
+  while (dockMsgs.children.length > 24) dockMsgs.firstChild.remove();
+  dockMsgs.scrollTop = dockMsgs.scrollHeight;
+  if (!reduceMotion && div.animate) {
+    div.animate([{ opacity: 0.25, filter: "blur(3px)" }, { opacity: 1, filter: "blur(0px)" }],
+      { duration: 190, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+  }
+}
+function speak(html) { bubble(html, false); }
+
 const HNAME = { day: '<span class="h-day">Today</span>', week: '<span class="h-week">This Week</span>', month: '<span class="h-month">This Month</span>', year: '<span class="h-year">This Year</span>' };
 
 function greeting() {
@@ -1570,10 +1676,10 @@ function afterAction(hid, task) {
   return "Reopened in " + HNAME[hid] + " — no problem, progress isn't always linear.";
 }
 
-function briefing() {
+function briefingMsg() {
   const d = stat("day"), w = stat("week"), m = stat("month"), y = stat("year");
   const parts = [greeting() + ". "];
-  if (d.total === 0) parts.push("Your " + HNAME.day + " board is empty — set 1–3 tasks so tomorrow's 7am text has something to plan around.");
+  if (d.total === 0) parts.push("Your " + HNAME.day + " board is empty — set 1–3 tasks so tomorrow's 7am plan has something to work with.");
   else if (d.left === 0) parts.push("<strong>Today is already clear</strong> — all " + d.total + " done. Streak: <strong>" + profile.streak + "</strong>.");
   else {
     parts.push("You've got <strong>" + d.left + "</strong> of " + d.total + " left in " + HNAME.day + ". ");
@@ -1618,14 +1724,14 @@ const PEP = [
 function motivateAns() {
   const d = stat("day");
   let base = PEP[Math.floor(Math.random() * PEP.length)];
-  if (profile.streak >= 3) base = "🔥 <strong>" + profile.streak + " days</strong> straight — that's not luck, that's identity. Don't break the chain today. " + base;
+  if (profile.streak >= 3) base = "<strong>" + profile.streak + " days</strong> straight — that's not luck, that's identity. Don't break the chain today. " + base;
   else if (d.left > 0) base += " You have <strong>" + d.left + "</strong> waiting in " + HNAME.day + ".";
   return base;
 }
 
 function planAns() {
   const open = state.day.filter(t => !t.done);
-  if (!open.length) return "Nothing open in " + HNAME.day + " to plan. Add 1–3 tasks — ideally one that moves a " + HNAME.week + " or " + HNAME.month + " goal. Your real itinerary arrives by text at 7am.";
+  if (!open.length) return "Nothing open in " + HNAME.day + " to plan. Add 1–3 tasks — ideally one that moves a " + HNAME.week + " or " + HNAME.month + " goal. Your real itinerary arrives every morning at 7.";
   const lines = open.slice(0, 5).map((t, i) => (i + 1) + ". " + esc(t.text));
   return "A simple order for " + HNAME.day + " — hardest first while your energy's fresh:<br>" + lines.join("<br>") +
     (open.length > 5 ? "<br>…and " + (open.length - 5) + " more. Consider moving some to " + HNAME.week + " or " + HNAME.month + "." : "");
@@ -1642,38 +1748,57 @@ function freeText(q) {
   if (/(year|yearly|annual)/.test(q)) { const y = stat("year"); return y.total ? HNAME.year + ": <strong>" + y.pct + "%</strong>, " + y.left + " left. Long game — keep chipping." : "No " + HNAME.year + " goals set yet."; }
   if (/(today|day|daily)/.test(q)) { const dd = stat("day"); return HNAME.day + ": " + (dd.total ? dd.done + "/" + dd.total + " done, " + dd.left + " left." : "empty — add a task."); }
   if (/(streak|chain|fire)/.test(q)) return "Your streak is <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. It grows each day you clear <em>every</em> task in " + HNAME.day + ".";
-  if (/(text|sms|itinerary|7am|morning)/.test(q)) return "Every morning at 7am your assistant reads this board and your briefing, plans your day, and texts you the itinerary. Keep the briefing (📡 panel above) current for better plans.";
+  if (/(text|sms|discord|itinerary|7am|morning)/.test(q)) return "Every morning at 7 your assistant reads this board and your briefing, plans your day, and sends the itinerary. Keep the Briefing page current for better plans.";
   if (/(hi|hey|hello|yo|sup)\b/.test(q)) return greeting() + "! Ask me what to focus on, how you're doing, or say “motivate me.”";
-  if (/(help|what can you|command)/.test(q)) return "I read your board and can: pick your <strong>focus</strong>, report <strong>progress</strong>, <strong>plan</strong> your day, or give you a <strong>pep talk</strong>. The smarter planning happens in your 7am text.";
-  if (/(thank|thx|cheers)/.test(q)) return "Anytime. Now go check a box. ✅";
-  return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips above. For deeper planning, your 7am itinerary text has you covered.";
+  if (/(help|what can you|command)/.test(q)) return "I read your board and can: pick your <strong>focus</strong>, report <strong>progress</strong>, <strong>plan</strong> your day, or give you a <strong>pep talk</strong>. The smarter planning happens in your 7am itinerary.";
+  if (/(thank|thx|cheers)/.test(q)) return "Anytime. Now go check one off. ✅";
+  return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips below. For deeper planning, your 7am itinerary has you covered.";
 }
 
 function reopenOnboarding() {
+  setDock(false);
   appView.hidden = true;
   onboardingView.hidden = false;
   obStart();
 }
-function bindChips() {
-  document.querySelectorAll(".chip[data-intent]").forEach(c => {
-    c.addEventListener("click", () => {
-      const i = c.getAttribute("data-intent");
-      if (i === "onboarding") { reopenOnboarding(); return; }
-      speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
-    });
+document.querySelectorAll(".chip[data-intent]").forEach(c => {
+  c.addEventListener("click", () => {
+    const i = c.getAttribute("data-intent");
+    if (i === "onboarding") { reopenOnboarding(); return; }
+    bubble(c.textContent.trim(), true);
+    speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
   });
-}
-bindChips();
+});
 document.getElementById("ask-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const inp = document.getElementById("ask-input");
   const q = inp.value.trim();
   if (!q) return;
+  bubble(q, true);
   speak(freeText(q));
   inp.value = "";
 });
 
-/* ---------- guided onboarding: options first, then go deeper ---------- */
+/* ---------- tabs ---------- */
+const VIEWS = { today: "view-today", goals: "view-goals", habits: "view-habits", insights: "view-insights", briefing: "view-briefing" };
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  Object.entries(VIEWS).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    const show = k === tab;
+    el.hidden = !show;
+    if (show) { el.classList.remove("entering"); void el.offsetWidth; el.classList.add("entering"); }
+  });
+  if (tab === "insights" && !insightsLoaded) { insightsLoaded = true; loadInsights(); }
+  document.getElementById("content").scrollTop = 0;
+}
+document.getElementById("nav").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-tab]");
+  if (b) setTab(b.dataset.tab);
+});
+
+/* ---------- guided onboarding ---------- */
 const OB_CATEGORIES = [
   { key: "career", label: "Career", year: "Land a senior [role] position", month: "Make visible progress on a big work project", week: "Update my resume and apply to a few roles", day: "Reach out to one contact about an opportunity" },
   { key: "health", label: "Health & fitness", year: "Run a half marathon", month: "Work out 12+ times this month", week: "Get to the gym 4 times this week", day: "Go for a 20-minute walk or run" },
@@ -1868,7 +1993,7 @@ async function obFinish() {
   try { localStorage.setItem("horizon.onboarding.done", "1"); } catch (e) {}
   onboardingView.hidden = true;
   appView.hidden = false;
-  await boot(); // creates/loads the real profile row + renders the dashboard with what we just added
+  await boot();
 
   if (briefText) {
     const existing = (profile.context || "").trim();
@@ -1880,16 +2005,14 @@ async function obFinish() {
       if (error) toast("Couldn't save briefing: " + error.message);
     }
   }
+  setDock(true);
   speak(added || briefText
-    ? "That's a real board now" + (added ? " — <strong>" + added + " goal" + (added === 1 ? "" : "s") + "</strong> set" : "") + (briefText ? (added ? " and" : " —") + " your planner briefed" : "") + ". 🎉 At 7:05 tomorrow it plans your day from this. Refine anytime — the 🧭 chip reruns this."
-    : "No worries — the 🧭 chip is here whenever you want a guided setup.");
+    ? "That's a real board now" + (added ? " — <strong>" + added + " goal" + (added === 1 ? "" : "s") + "</strong> set" : "") + (briefText ? (added ? " and" : " —") + " your planner briefed" : "") + ". 🎉 At 7:05 tomorrow it plans your day from this. Refine anytime — “Redo guided setup” below reruns this."
+    : "No worries — “Redo guided setup” below is here whenever you want the guided start.");
 }
 
 /* ---------- insights ---------- */
 let insightsLoaded = false;
-document.getElementById("insights").addEventListener("toggle", (e) => {
-  if (e.target.open && !insightsLoaded) { insightsLoaded = true; loadInsights(); }
-});
 
 async function loadInsights() {
   const body = document.getElementById("insights-body");
@@ -1909,7 +2032,7 @@ async function loadInsights() {
 
 function renderInsights(rows) {
   const doneRows = rows.filter(r => r.done && r.done_at);
-  const byDay = [0, 0, 0, 0, 0, 0, 0]; // Mon..Sun
+  const byDay = [0, 0, 0, 0, 0, 0, 0];
   doneRows.forEach(r => { byDay[(new Date(r.done_at).getDay() + 6) % 7]++; });
   const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const max = Math.max(1, ...byDay);
@@ -1921,17 +2044,19 @@ function renderInsights(rows) {
     { v: pct + "%", l: "completion" },
     { v: doneRows.length ? names[bestIdx] : "—", l: "best day" },
   ];
-  let html = '<div class="stat-row">' + tiles.map(t =>
-    '<div class="stat"><span class="v">' + t.v + '</span><span class="l">' + t.l + '</span></div>').join("") + '</div>';
-  html += '<div class="wk-chart">' + names.map((n, i) =>
+  let html = '<div class="stat-grid">' + tiles.map(t =>
+    '<div class="stat-card"><div class="lbl">' + t.l + '</div><div class="val">' + t.v + '</div></div>').join("") + '</div>';
+
+  html += '<div class="panel-card"><div class="hd"><span class="t">Completions by weekday</span><span class="s">last 30 days</span></div>';
+  html += names.map((n, i) =>
     '<div class="wk-row' + (doneRows.length && i === bestIdx ? " best" : "") + '">' +
       '<span class="d">' + n + '</span>' +
-      '<div class="bar-track"><div class="bar" style="width:' + Math.round(byDay[i] / max * 100) + '%"></div></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="transform:scaleX(' + (byDay[i] / max) + ')"></div></div>' +
       '<span class="n">' + byDay[i] + '</span>' +
-    '</div>').join("") + '</div>';
+    '</div>').join("");
   html += '<p class="insights-note">' + (doneRows.length < 5
     ? "Early days — patterns get real after a couple of weeks of data."
-    : "Completions by weekday, last 30 days. Gold = your best day.") + '</p>';
+    : "Terracotta = your best day.") + '</p></div>';
 
   const estRows = doneRows.filter(r => r.estimate_min && r.done_at && r.created_at);
   if (estRows.length >= 3) {
@@ -1944,8 +2069,9 @@ function renderInsights(rows) {
         : avg < 0.85
         ? "You tend to overestimate — you usually finish faster than planned."
         : "Your estimates are pretty accurate.";
-      html += '<div class="stat" style="margin-top:10px"><span class="v">' + avg.toFixed(1) + '×</span><span class="l">actual vs. estimate</span></div>'
-        + '<p class="insights-note">' + verdict + '</p>';
+      html += '<div class="panel-card"><div class="hd"><span class="t">Estimate accuracy</span><span class="s">actual vs. estimate</span></div>'
+        + '<div class="val serif" style="font-size:2.125rem;">' + avg.toFixed(1) + '×</div>'
+        + '<p class="insights-note">' + verdict + '</p></div>';
     }
   }
   document.getElementById("insights-body").innerHTML = html;
@@ -1953,7 +2079,7 @@ function renderInsights(rows) {
 
 function demoInsightRows() {
   const rows = [];
-  const weights = [3, 4, 2, 4, 3, 1, 1]; // Mon..Sun volume
+  const weights = [3, 4, 2, 4, 3, 1, 1];
   for (let d = 0; d < 30; d++) {
     const date = new Date(Date.now() - d * 86400000);
     const w = weights[(date.getDay() + 6) % 7];
@@ -1974,14 +2100,14 @@ function demoInsightRows() {
 
 /* ---------- theme ---------- */
 const root = document.documentElement;
-const savedTheme = localStorage.getItem("horizon.theme") || "light"; // light is the default look; OS dark preference no longer auto-applies
+const savedTheme = localStorage.getItem("horizon.theme") || "light";
 root.setAttribute("data-theme", savedTheme);
 let themeFadeTimer;
 document.getElementById("theme").addEventListener("click", () => {
   let cur = root.getAttribute("data-theme");
   if (!cur) cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const next = cur === "dark" ? "light" : "dark";
-  if (!reduceMotion) { // ease the dark↔light swap instead of hard-cutting brightness
+  if (!reduceMotion) {
     root.classList.add("theme-fade");
     clearTimeout(themeFadeTimer);
     themeFadeTimer = setTimeout(() => root.classList.remove("theme-fade"), 260);
@@ -2032,11 +2158,8 @@ function demoHabits() {
 async function boot() {
   if (booted) return;
   booted = true;
-  root.classList.add("booting");
   if (DEMO) {
     state = demoData();
-    // Dev-only: ?demo=1&sparse=year renders a just-onboarded board (year goals
-    // set, rest empty); &sparse=all renders a skipped-everything board.
     const sparse = new URLSearchParams(location.search).get("sparse");
     if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
     else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
@@ -2049,10 +2172,11 @@ async function boot() {
     await loadBoard();
     await loadHabits();
   }
-  render();
+  renderChrome();
+  renderBoard();
   renderHabits();
-  speak(briefing()); // onboarding (if any) already ran before boot() was called — see routeAfterAuth()
-  setTimeout(() => root.classList.remove("booting"), 900);
+  speak(briefingMsg());
+  setTab(currentTab);
 }
 </script>
 </body>
