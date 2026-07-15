@@ -82,23 +82,104 @@
     width: 100%; max-width: 400px; background: var(--panel);
     border: 1px solid var(--line); border-radius: var(--radius);
     padding: 32px 28px; box-shadow: var(--shadow); text-align: center;
+    animation: rise .5s var(--ease-out) both;
   }
   .auth-card .logo { font-size: 2.375rem; margin-bottom: 4px; }
-  .auth-card p { color: var(--ink-2); font-size: 0.875rem; line-height: 1.5; margin: 10px 0 22px; }
+  .auth-card p { color: var(--ink-2); font-size: 0.875rem; line-height: 1.5; margin: 10px 0 18px; }
+  .auth-tabs { display: flex; gap: 4px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 18px; }
+  .auth-tab {
+    flex: 1; border: none; background: transparent; color: var(--ink-3); font-weight: 700; font-size: 0.8125rem;
+    padding: 8px; border-radius: 999px; cursor: pointer; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+  .auth-tab.active { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
   .auth-card form { display: flex; flex-direction: column; gap: 10px; }
   .auth-card input {
     background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
     border-radius: 10px; padding: 12px 14px; font-size: 0.9375rem; font-family: var(--font-body);
   }
   .auth-card input:focus { outline: none; border-color: var(--month); }
+  .auth-card .field-error { font-size: 0.75rem; color: var(--crit); text-align: left; margin: -4px 0 0; min-height: 1em; }
   .auth-card button {
     border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
     font-weight: 700; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 0.9375rem;
     transition: transform var(--dur-fast) var(--ease-out);
   }
   .auth-card button:active { transform: scale(.97); }
+  .auth-card button:disabled { opacity: .6; cursor: default; }
   .auth-note { font-size: 0.78125rem !important; color: var(--ink-3) !important; margin-top: 16px !important; }
   .auth-sent { color: var(--good); font-weight: 600; font-size: 0.90625rem; }
+
+  /* ---- onboarding (dedicated full-screen flow, questions before dashboard) ---- */
+  .onboarding {
+    min-height: 100vh; display: grid; place-items: center; padding: 22px;
+  }
+  .ob-card {
+    width: 100%; max-width: 460px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 30px 30px 26px; box-shadow: var(--shadow);
+    animation: rise .5s var(--ease-out) both;
+  }
+  @keyframes obStepIn { from { opacity: 0; transform: translateY(6px); } }
+  .ob-anim #ob-eyebrow, .ob-anim #ob-question, .ob-anim #ob-options, .ob-anim #ob-deeper-form:not([hidden]) {
+    animation: obStepIn var(--dur-slow) var(--ease-out) both;
+  }
+  .ob-progress { display: flex; gap: 6px; margin-bottom: 20px; }
+  .ob-dot { flex: 1; height: 4px; border-radius: 999px; background: var(--ring-track); transition: background var(--dur-mid) var(--ease-out); }
+  .ob-dot.done { background: var(--month); }
+  .ob-dot.current { background: var(--day); }
+  .ob-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .ob-orb {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 32% 30%, #fff6, transparent 45%), conic-gradient(from 210deg, var(--day), var(--month), var(--year), var(--day));
+    animation: spin 9s linear infinite;
+  }
+  .ob-eyebrow { font-size: 0.75rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .ob-question { font-family: var(--font-display); font-size: 1.375rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.3; margin: 10px 0 20px; text-wrap: balance; }
+  .ob-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+  .ob-opt {
+    text-align: left; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+    padding: 12px 14px; border-radius: 12px; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .ob-opt:hover { border-color: var(--month); background: var(--month-soft); } }
+  .ob-opt:active { transform: scale(.98); }
+  .ob-opt .ob-opt-sub { display: block; font-weight: 500; font-size: 0.78125rem; color: var(--ink-3); margin-top: 2px; }
+  .ob-opt.picked { border-color: var(--month); background: var(--month-soft); }
+  .ob-opt.capped { opacity: .45; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) { .ob-opt.capped:hover { border-color: var(--line); background: var(--panel-2); } }
+  .ob-cat-actions { margin-top: 4px; }
+  .ob-cat-hint { font-size: 0.8125rem; color: var(--ink-3); margin: 2px 0 12px; min-height: 1.2em; }
+  .ob-cat-continue {
+    width: 100%; border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
+    font-weight: 700; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 0.875rem;
+    transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  }
+  .ob-cat-continue:active { transform: scale(.97); }
+  .ob-cat-continue:disabled { opacity: .45; cursor: default; }
+  .ob-deeper { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .ob-deeper-label { font-size: 0.8125rem; color: var(--ink-2); }
+  .ob-deeper input, .ob-deeper textarea {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 11px 13px; font-size: 0.9375rem; font-family: var(--font-body); resize: vertical;
+  }
+  .ob-deeper input:focus, .ob-deeper textarea:focus { outline: none; border-color: var(--month); }
+  .ob-deeper-actions { display: flex; gap: 8px; }
+  .ob-deeper-actions button[type="submit"] {
+    flex: 1; border: none; background: linear-gradient(120deg, var(--day), var(--month)); color: #fff;
+    font-weight: 700; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 0.875rem;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .ob-deeper-actions button[type="submit"]:active { transform: scale(.97); }
+  .ob-back {
+    border: 1px solid var(--line); background: transparent; color: var(--ink-2); font-weight: 600; font-size: 0.875rem;
+    padding: 11px 16px; border-radius: 10px; cursor: pointer;
+  }
+  .ob-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+  .ob-foot button {
+    border: none; background: transparent; color: var(--ink-3); font-size: 0.8125rem; font-weight: 600;
+    cursor: pointer; text-decoration: underline; padding: 4px;
+  }
+  .ob-foot button:hover { color: var(--ink); }
 
   /* ---- command bar ---- */
   .bar {
@@ -414,9 +495,10 @@
   .del:hover { color: var(--crit); }
   @media (hover: none) { .del { opacity: .55; } }
 
-  .notes-wrap { max-height: 0; overflow: hidden; transition: max-height var(--dur-mid) var(--ease-out); }
-  .task.notes-open .notes-wrap { max-height: 300px; }
-  .notes-inner { padding: 0 11px 11px 11px; }
+  .notes-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-mid) var(--ease-out); }
+  .task.notes-open .notes-wrap { grid-template-rows: 1fr; }
+  .notes-inner { overflow: hidden; min-height: 0; padding: 0 11px; }
+  .notes-inner > :last-child { margin-bottom: 11px; }
   .notes-inner textarea {
     width: 100%; min-height: 60px; resize: vertical;
     background: var(--panel); border: 1px solid var(--line); color: var(--ink);
@@ -426,6 +508,23 @@
   .notes-inner textarea::placeholder { color: var(--ink-3); }
 
   .empty { font-size: 0.8125rem; color: var(--ink-3); padding: 12px 4px; text-align: center; font-style: italic; }
+  .col-empty {
+    list-style: none; display: flex; flex-direction: column; align-items: center; gap: 9px;
+    padding: 20px 12px 14px; text-align: center;
+  }
+  .col-empty .empty-mark {
+    font-size: 1rem; line-height: 1; color: var(--c);
+    width: 30px; height: 30px; display: grid; place-items: center;
+    border-radius: 50%; background: var(--c-soft);
+  }
+  .col-empty .empty-copy { margin: 0; font-size: 0.8125rem; color: var(--ink-2); line-height: 1.45; max-width: 24ch; }
+  .col-empty .empty-cta {
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    font-size: 0.78125rem; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover), background var(--dur-fast) var(--ease-hover), transform var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .col-empty .empty-cta:hover { border-color: var(--c); color: var(--ink); background: var(--c-soft); } }
+  .col-empty .empty-cta:active { transform: scale(.97); }
 
   .add { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
   .add input {
@@ -456,6 +555,24 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
+  /* press feedback on every remaining pressable (Emil: applies to any pressable element) */
+  .ob-back, .ob-foot button, .auth-tab, .habit-row button, .day-picker button, .signout {
+    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
+  }
+  .ob-back:active, .ob-foot button:active, .auth-tab:active, .day-picker button:active { transform: scale(.97); }
+  .habit-row button:active, .signout:active { transform: scale(.92); }
+  .auth-tab:focus-visible, .ob-opt:focus-visible, .ob-back:focus-visible, .ob-foot button:focus-visible,
+  .day-picker button:focus-visible, .habit-row button:focus-visible { outline: 2px solid var(--month); outline-offset: 2px; }
+
+  /* panels ease open instead of snapping (closing stays instant — asymmetric timing) */
+  @keyframes panelIn { from { opacity: 0; transform: translateY(-4px); } }
+  .context[open] .context-body, .habits[open] .habits-body, .insights[open] .insights-body {
+    animation: panelIn var(--dur-mid) var(--ease-out);
+  }
+
+  /* brief eased crossfade when switching light/dark (class added by JS for ~260ms) */
+  .theme-fade, .theme-fade * { transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease !important; }
+
   .booting .col, .booting .copilot, .booting .context { animation: rise .5s var(--ease-out) both; }
   .booting .col.week { animation-delay: .04s; }
   .booting .col.month { animation-delay: .08s; }
@@ -465,6 +582,9 @@
     .booting .col, .booting .copilot, .booting .context, .task.enter { animation: none; }
     .co-orb { animation: none; }
     .notes-wrap { transition: none; }
+    .auth-card, .ob-card, .ob-orb { animation: none; }
+    .ob-anim #ob-eyebrow, .ob-anim #ob-question, .ob-anim #ob-options, .ob-anim #ob-deeper-form:not([hidden]) { animation: none; }
+    .context[open] .context-body, .habits[open] .habits-body, .insights[open] .insights-body { animation: none; }
   }
   [hidden] { display: none !important; }
 </style>
@@ -474,12 +594,46 @@
 <div class="auth" id="auth" hidden>
   <div class="auth-card">
     <div class="logo auth-logo" style="font-family:var(--font-display);font-weight:800;letter-spacing:-.03em;background:linear-gradient(100deg,var(--day),var(--month) 55%,var(--year));-webkit-background-clip:text;background-clip:text;color:transparent;">Horizon</div>
-    <p>Your goal command center. Sign in with your email — a magic link does the rest.</p>
+    <p id="auth-tagline">Your goal command center.</p>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab active" id="auth-tab-signin" data-mode="signin" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" class="auth-tab" id="auth-tab-signup" data-mode="signup" role="tab" aria-selected="false">Create account</button>
+    </div>
     <form id="auth-form">
       <input id="auth-email" type="email" required placeholder="you@example.com" autocomplete="email" aria-label="Email address" />
-      <button type="submit" id="auth-btn">Send magic link</button>
+      <input id="auth-password" type="password" required minlength="8" placeholder="Password" autocomplete="current-password" aria-label="Password" />
+      <p class="field-error" id="auth-error"></p>
+      <button type="submit" id="auth-btn">Sign in</button>
     </form>
-    <p class="auth-note" id="auth-note">No password. The link signs you in on this device.</p>
+    <p class="auth-note" id="auth-note">New here? Create an account — we'll email you a link to confirm it.</p>
+  </div>
+</div>
+
+<div class="onboarding" id="onboarding" hidden>
+  <div class="ob-card" id="ob-card">
+    <div class="ob-progress" id="ob-progress"></div>
+    <div class="ob-head">
+      <div class="ob-orb" aria-hidden="true"></div>
+      <span class="ob-eyebrow" id="ob-eyebrow">Getting set up</span>
+    </div>
+    <h2 class="ob-question" id="ob-question"></h2>
+    <div class="ob-options" id="ob-options"></div>
+    <div class="ob-cat-actions" id="ob-cat-actions" hidden>
+      <p class="ob-cat-hint" id="ob-cat-hint"></p>
+      <button type="button" class="ob-cat-continue" id="ob-cat-continue">Continue</button>
+    </div>
+    <form class="ob-deeper" id="ob-deeper-form" hidden>
+      <label class="ob-deeper-label" id="ob-deeper-label" for="ob-input"></label>
+      <input type="text" id="ob-input" maxlength="200" autocomplete="off" />
+      <div class="ob-deeper-actions">
+        <button type="button" class="ob-back" id="ob-back">← Back</button>
+        <button type="submit" id="ob-submit">Continue</button>
+      </div>
+    </form>
+    <div class="ob-foot">
+      <button type="button" id="ob-skip-step">Skip this question</button>
+      <button type="button" id="ob-skip-all">I'll do this later</button>
+    </div>
   </div>
 </div>
 
@@ -512,7 +666,7 @@
       <button class="chip" data-intent="progress">📊 How am I doing?</button>
       <button class="chip" data-intent="motivate">⚡ Motivate me</button>
       <button class="chip" data-intent="plan">🗓 Plan my day</button>
-      <button class="chip" data-intent="wizard">🧭 Help me set goals</button>
+      <button class="chip" data-intent="onboarding">🧭 Redo guided setup</button>
     </div>
     <form class="ask" id="ask-form">
       <input id="ask-input" type="text" placeholder="Ask the copilot… (e.g. “what's left this month?”)" autocomplete="off" aria-label="Ask the copilot" />
@@ -632,7 +786,9 @@ function toast(msg) {
 
 /* ---------- auth ---------- */
 const authView = document.getElementById("auth");
+const onboardingView = document.getElementById("onboarding");
 const appView = document.getElementById("app");
+let authMode = "signin"; // "signin" | "signup"
 
 if (DEMO) {
   const banner = document.createElement("div");
@@ -640,28 +796,93 @@ if (DEMO) {
   banner.textContent = "Demo mode — sample data, nothing is saved";
   document.body.prepend(banner);
   authView.hidden = true;
-  appView.hidden = false;
-  queueMicrotask(boot);
+  if (new URLSearchParams(location.search).get("onboarding") === "1") {
+    onboardingView.hidden = false;
+    queueMicrotask(obStart); // obStart/obRender reference consts declared later in module-evaluation order
+  } else {
+    appView.hidden = false;
+    queueMicrotask(boot);
+  }
 } else {
   sb.auth.onAuthStateChange((_event, session) => {
-    if (session) { authView.hidden = true; appView.hidden = false; boot(); }
-    else { appView.hidden = true; authView.hidden = false; }
+    if (session) { authView.hidden = true; routeAfterAuth(); }
+    else { appView.hidden = true; onboardingView.hidden = true; authView.hidden = false; }
   });
 }
+
+// Questions come before the dashboard: a brand-new account (zero goals, no
+// dismissal on file) sees the guided setup first; the grid/streak/date only
+// appear once that's done or explicitly deferred.
+async function routeAfterAuth() {
+  const skipped = localStorage.getItem("horizon.onboarding.done") === "1";
+  let hasGoals = true;
+  if (!skipped) {
+    const { count } = await sb.from("goals").select("id", { count: "exact", head: true });
+    hasGoals = (count ?? 0) > 0;
+  }
+  if (!skipped && !hasGoals) {
+    appView.hidden = true;
+    onboardingView.hidden = false;
+    obStart();
+  } else {
+    onboardingView.hidden = true;
+    appView.hidden = false;
+    boot();
+  }
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const signup = mode === "signup";
+  document.getElementById("auth-tab-signin").classList.toggle("active", !signup);
+  document.getElementById("auth-tab-signin").setAttribute("aria-selected", String(!signup));
+  document.getElementById("auth-tab-signup").classList.toggle("active", signup);
+  document.getElementById("auth-tab-signup").setAttribute("aria-selected", String(signup));
+  document.getElementById("auth-btn").textContent = signup ? "Create account" : "Sign in";
+  document.getElementById("auth-password").autocomplete = signup ? "new-password" : "current-password";
+  document.getElementById("auth-tagline").textContent = signup
+    ? "Create your account — we'll email you a link to confirm it."
+    : "Your goal command center.";
+  document.getElementById("auth-error").textContent = "";
+  document.getElementById("auth-note").textContent = signup
+    ? "Password must be at least 8 characters."
+    : "New here? Create an account — we'll email you a link to confirm it.";
+}
+document.getElementById("auth-tab-signin").addEventListener("click", () => setAuthMode("signin"));
+document.getElementById("auth-tab-signup").addEventListener("click", () => setAuthMode("signup"));
 
 document.getElementById("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("auth-email").value.trim();
-  if (!email) return;
+  const password = document.getElementById("auth-password").value;
+  const errEl = document.getElementById("auth-error");
+  const noteEl = document.getElementById("auth-note");
+  errEl.textContent = "";
+  if (!email || !password) return;
+  if (authMode === "signup" && password.length < 8) {
+    errEl.textContent = "Password needs to be at least 8 characters.";
+    return;
+  }
   const btn = document.getElementById("auth-btn");
-  btn.disabled = true; btn.textContent = "Sending…";
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
-  if (error) {
-    btn.disabled = false; btn.textContent = "Send magic link";
-    document.getElementById("auth-note").textContent = "Couldn't send: " + error.message;
+  btn.disabled = true;
+
+  if (authMode === "signup") {
+    btn.textContent = "Creating account…";
+    const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+    btn.disabled = false; btn.textContent = "Create account";
+    if (error) { errEl.textContent = error.message; return; }
+    if (data.session) { return; } // confirmation disabled on this project — onAuthStateChange handles it
+    noteEl.innerHTML = '<span class="auth-sent">Check your email — click the link to confirm your account, then come back here and sign in.</span>';
+    setAuthMode("signin");
   } else {
-    btn.textContent = "Link sent";
-    document.getElementById("auth-note").innerHTML = '<span class="auth-sent">Check your email and open the link on this device.</span>';
+    btn.textContent = "Signing in…";
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    btn.disabled = false; btn.textContent = "Sign in";
+    if (error) {
+      errEl.textContent = /confirm/i.test(error.message)
+        ? "Confirm your email first — check your inbox for the link."
+        : error.message;
+    }
   }
 });
 
@@ -726,6 +947,38 @@ async function addGoal(hid, text) {
   justAddedId = data.id;
   render();
   justAddedId = null;
+  // render() rebuilt the form, dropping focus after the network round-trip —
+  // put the caret back so rapid entry keeps flowing (skip while grid is hidden)
+  if (!appView.hidden) {
+    const inp = grid.querySelector('.col.' + hid + ' form[data-add] input');
+    if (inp) inp.focus({ preventScroll: true });
+  }
+}
+
+// Update the toggled task in place instead of rebuilding the grid — a rebuilt
+// node mounts already-done, so the check/strikethrough transitions never play.
+function applyToggleUI(hid, id) {
+  const t = state[hid].find(x => x.id === id);
+  const li = grid.querySelector('.task[data-id="' + id + '"]');
+  if (!t || !li) { render(); return; }
+  li.classList.toggle("done", t.done);
+  const check = li.querySelector(".check");
+  check.setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
+  check.setAttribute("aria-pressed", String(t.done));
+  updateColMeta(hid);
+}
+function updateColMeta(hid) {
+  const col = grid.querySelector(".col." + hid);
+  if (!col) return;
+  const s = stat(hid);
+  const C = 2 * Math.PI * 26;
+  const ring = col.querySelectorAll("circle")[1];
+  if (ring) ring.style.strokeDashoffset = (C * (1 - s.pct / 100)).toFixed(1);
+  lastPct[hid] = s.pct;
+  col.querySelector(".pct").textContent = s.pct;
+  const foot = col.querySelector(".col-foot");
+  foot.querySelector("span").textContent = s.total ? s.done + " of " + s.total + " done" : "nothing here yet";
+  foot.querySelector("b").textContent = s.left + " left";
 }
 
 async function toggleGoal(hid, id) {
@@ -733,10 +986,10 @@ async function toggleGoal(hid, id) {
   if (!t) return;
   t.done = !t.done;
   t.done_at = t.done ? new Date().toISOString() : null;
-  render(); speak(afterAction(hid, t));
+  applyToggleUI(hid, id); speak(afterAction(hid, t));
   if (!DEMO) {
     const { error } = await sb.from("goals").update({ done: t.done, done_at: t.done_at }).eq("id", id);
-    if (error) { t.done = !t.done; render(); toast("Couldn't save: " + error.message); return; }
+    if (error) { t.done = !t.done; applyToggleUI(hid, id); toast("Couldn't save: " + error.message); return; }
   }
   if (hid === "day") await maybeAdvanceStreak();
 }
@@ -744,6 +997,20 @@ async function toggleGoal(hid, id) {
 async function removeGoal(hid, id) {
   const prev = state[hid];
   state[hid] = prev.filter(x => x.id !== id);
+  // collapse the row out before re-rendering — deletions shouldn't just blink away
+  const li = grid.querySelector('.task[data-id="' + id + '"]');
+  if (li && !reduceMotion && li.animate) {
+    li.style.pointerEvents = "none";
+    li.style.overflow = "hidden";
+    const h = li.offsetHeight;
+    const anim = li.animate(
+      [{ opacity: 1, transform: "scale(1)", height: h + "px", marginBottom: "0px" },
+       { opacity: 0, transform: "scale(.96)", height: "0px", marginBottom: "-7px" }],
+      { duration: 200, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" });
+    // don't trust anim.finished alone — throttled/hidden tabs can stall the
+    // animation timeline, and the delete must land regardless
+    await Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 300))]);
+  }
   render();
   if (!DEMO) {
     const { error } = await sb.from("goals").delete().eq("id", id);
@@ -922,6 +1189,23 @@ function stat(k) {
 
 const grid = document.getElementById("grid");
 
+// Which horizons sit "above" each one on the ladder (broad → narrow). Used to
+// tailor an empty column's nudge: if a bigger goal exists, invite laddering
+// down from it; if not, ask the open question for that horizon.
+const BROADER_OF = { day: ["week", "month", "year"], week: ["month", "year"], month: ["year"], year: [] };
+function emptyCopy(hid, hasBroader) {
+  if (hid === "year") return { line: "Name the long game — who are you becoming this year?", cta: "Set a yearly goal" };
+  if (hid === "month") return hasBroader
+    ? { line: "You've named the year. What's this month's slice of it?", cta: "Set a monthly goal" }
+    : { line: "Where do you want to be a month from now?", cta: "Set a monthly goal" };
+  if (hid === "week") return hasBroader
+    ? { line: "What's one thing you could move this week?", cta: "Set a weekly goal" }
+    : { line: "Pick something you could finish this week.", cta: "Set a weekly goal" };
+  return hasBroader
+    ? { line: "Turn a bigger goal into one move for today.", cta: "Add today's first task" }
+    : { line: "Start small — one thing you'll actually do today.", cta: "Add today's first task" };
+}
+
 function render() {
   renderDate();
   document.getElementById("streak-n").textContent = profile.streak;
@@ -967,8 +1251,16 @@ function render() {
     }
 
     const ul = col.querySelector("ul");
-    if (!s.total) ul.innerHTML = '<li class="empty">Add your first ' + (h.id === "day" ? "task" : "goal") + ' below ✦</li>';
-    else state[h.id].forEach(task => ul.appendChild(taskEl(h.id, task)));
+    if (!s.total) {
+      const hasBroader = BROADER_OF[h.id].some(k => stat(k).total > 0);
+      const ec = emptyCopy(h.id, hasBroader);
+      ul.innerHTML =
+        '<li class="col-empty">' +
+          '<span class="empty-mark" aria-hidden="true">✦</span>' +
+          '<p class="empty-copy">' + ec.line + '</p>' +
+          '<button type="button" class="empty-cta">' + ec.cta + ' →</button>' +
+        '</li>';
+    } else state[h.id].forEach(task => ul.appendChild(taskEl(h.id, task)));
   });
 }
 
@@ -1064,6 +1356,14 @@ grid.addEventListener("submit", (e) => {
   }
 });
 
+// Empty-column CTA drops focus straight into that column's add-input.
+grid.addEventListener("click", (e) => {
+  const cta = e.target.closest(".empty-cta");
+  if (!cta) return;
+  const input = cta.closest(".col").querySelector("form[data-add] input");
+  if (input) input.focus();
+});
+
 /* ---------- drag to reorder ---------- */
 function listGapPx(ul) {
   const cs = getComputedStyle(ul);
@@ -1097,9 +1397,20 @@ grid.addEventListener("pointerdown", (e) => {
   e.preventDefault();
 });
 
+// Apple-style rubber-band: past the list's ends the row follows less and less
+function rubberband(overshoot, dimension, constant) {
+  constant = constant || 0.55;
+  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+}
+
 grid.addEventListener("pointermove", (e) => {
   if (!drag || e.pointerId !== drag.pointerId) return;
-  const dy = e.clientY - drag.startY;
+  let dy = e.clientY - drag.startY;
+  const origIdx = drag.originalIndex[drag.li.dataset.id];
+  const minDy = -origIdx * drag.itemH;
+  const maxDy = (drag.order.length - 1 - origIdx) * drag.itemH;
+  if (dy < minDy) dy = minDy + rubberband(dy - minDy, drag.itemH);
+  else if (dy > maxDy) dy = maxDy + rubberband(dy - maxDy, drag.itemH);
   drag.li.style.transform = "translateY(" + dy + "px)";
   drag.samples.push({ t: e.timeStamp, y: e.clientY });
   if (drag.samples.length > 6) drag.samples.shift();
@@ -1282,11 +1593,16 @@ function freeText(q) {
   return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips above. For deeper planning, your 7am itinerary text has you covered.";
 }
 
+function reopenOnboarding() {
+  appView.hidden = true;
+  onboardingView.hidden = false;
+  obStart();
+}
 function bindChips() {
   document.querySelectorAll(".chip[data-intent]").forEach(c => {
     c.addEventListener("click", () => {
       const i = c.getAttribute("data-intent");
-      if (i === "wizard") { wizStart(false); return; }
+      if (i === "onboarding") { reopenOnboarding(); return; }
       speak(i === "focus" ? focusAns() : i === "progress" ? progressAns() : i === "motivate" ? motivateAns() : planAns());
     });
   });
@@ -1297,94 +1613,219 @@ document.getElementById("ask-form").addEventListener("submit", (e) => {
   const inp = document.getElementById("ask-input");
   const q = inp.value.trim();
   if (!q) return;
-  if (wiz) wizAnswer(q); else speak(freeText(q));
+  speak(freeText(q));
   inp.value = "";
 });
 
-/* ---------- goal interview wizard ---------- */
-const WIZ_STEPS = [
-  { kind: "goal", hid: "year",
-    q: () => "If this year ends and you're proud of <strong>one thing</strong> — what is it? Make it concrete.",
-    ph: "e.g. Land a senior frontend role" },
-  { kind: "goal", hid: "month",
-    q: (w) => "By the end of this month, what would real progress on “<strong>" + esc(w.lastGoal || "that") + "</strong>” look like?",
-    ph: "e.g. Portfolio revamped + 30 applications out" },
-  { kind: "goal", hid: "week",
-    q: () => "The short game: what can you realistically move <strong>this week</strong>?",
-    ph: "e.g. Finish the Horizon case study" },
-  { kind: "goal", hid: "day",
-    q: () => "And the very next physical action — something finishable <strong>today or tomorrow</strong>?",
-    ph: "e.g. Draft the case study outline" },
-  { kind: "brief", bkey: "hours",
-    q: () => "Now teach your 7am planner your rhythm. What are your <strong>working hours</strong>?",
-    ph: "e.g. 9–5 weekdays" },
-  { kind: "brief", bkey: "commit",
-    q: () => "Recurring commitments it should plan around? (gym, family, classes)",
-    ph: "e.g. Gym Mon/Wed/Fri at 6pm" },
-  { kind: "brief", bkey: "energy",
-    q: () => "When is your brain at its best for <strong>deep work</strong>?",
-    ph: "e.g. Mornings before noon" },
-  { kind: "brief", bkey: "protect",
-    q: () => "Last one: anything the planner should <strong>never touch</strong>? (evenings, Sundays, lunch)",
-    ph: "e.g. Keep evenings after 8 free" },
+/* ---------- guided onboarding: options first, then go deeper ---------- */
+const OB_CATEGORIES = [
+  { key: "career", label: "Career", year: "Land a senior [role] position", month: "Make visible progress on a big work project", week: "Update my resume and apply to a few roles", day: "Reach out to one contact about an opportunity" },
+  { key: "health", label: "Health & fitness", year: "Run a half marathon", month: "Work out 12+ times this month", week: "Get to the gym 4 times this week", day: "Go for a 20-minute walk or run" },
+  { key: "money", label: "Money", year: "Grow savings by a real amount", month: "Cut spending by $300 this month", week: "Review one recurring subscription", day: "Log today's spending" },
+  { key: "relationships", label: "Relationships", year: "Reconnect with people who matter", month: "Plan a visit or trip with family or friends", week: "Call someone I haven't talked to in a while", day: "Text someone I've been meaning to check on" },
+  { key: "learning", label: "Learning", year: "Get conversational in a new skill or language", month: "Finish one course or book", week: "Study or practice three times this week", day: "Do one lesson or 20 minutes of practice" },
+  { key: "creative", label: "Creative", year: "Finish and share a personal project", month: "Complete one real chunk of it", week: "Put in a few real sessions this week", day: "Create for 30 minutes" },
 ];
-let wiz = null;
-const coActionsEl = document.querySelector(".co-actions");
-let savedChips = null;
+const OB_BRIEF = {
+  hours: { q: "What are your typical working hours?", presets: ["9–5 weekdays", "Flexible / remote hours", "Shift work", "Student schedule"] },
+  commit: { q: "Recurring commitments your planner should work around?", presets: ["Gym a few times a week", "Family time in the evenings", "Classes or coursework", "Nothing fixed"] },
+  energy: { q: "When's your brain at its best for deep work?", presets: ["Mornings", "Afternoons", "Evenings", "It varies"] },
+  protect: { q: "Anything the planner should never schedule over?", presets: ["Evenings after 6", "Weekends", "Lunch hour", "Nothing specific"] },
+};
+const OB_STEPS = ["categories", "year", "month", "week", "day", "hours", "commit", "energy", "protect"];
+const OB_GOAL_Q = {
+  month: "What would real progress on that look like this month?",
+  week: "What can you realistically move this week?",
+  day: "What's the very next concrete action — today or tomorrow?",
+};
+const OB_CAT_CAP = 3;
+let ob = null;
 
-function wizStart(auto) {
-  wiz = { i: 0, brief: {}, lastGoal: "", added: 0, auto: !!auto };
-  wizRender();
+function obStart() {
+  ob = { i: 0, categories: [], catIdx: 0, added: 0, brief: {} };
+  obRender();
 }
-function wizRender() {
-  const step = WIZ_STEPS[wiz.i];
-  const intro = (wiz.i === 0 && wiz.auto) ? "Your board is empty — perfect, let's build it together. " : "";
-  speak("🧭 <strong>" + (wiz.i + 1) + "/" + WIZ_STEPS.length + "</strong> — " + intro + step.q(wiz) + "<br><em style='color:var(--ink-3);font-size:.85em'>Type your answer below, or skip.</em>");
-  const input = document.getElementById("ask-input");
-  input.placeholder = step.ph;
+function obOptButton(label, sub, onClick) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ob-opt";
+  b.innerHTML = esc(label) + (sub ? '<span class="ob-opt-sub">' + esc(sub) + "</span>" : "");
+  b.addEventListener("click", onClick);
+  return b;
+}
+function obProgress() {
+  const wrap = document.getElementById("ob-progress");
+  wrap.innerHTML = "";
+  OB_STEPS.forEach((_, idx) => {
+    const d = document.createElement("span");
+    d.className = "ob-dot" + (idx < ob.i ? " done" : idx === ob.i ? " current" : "");
+    wrap.appendChild(d);
+  });
+}
+function obReplay() {
+  if (reduceMotion) return;
+  const card = document.getElementById("ob-card");
+  card.classList.remove("ob-anim");
+  void card.offsetWidth;
+  card.classList.add("ob-anim");
+}
+function obRender() {
+  obReplay();
+  obProgress();
+  const key = OB_STEPS[ob.i];
+  document.getElementById("ob-options").innerHTML = "";
+  document.getElementById("ob-deeper-form").hidden = true;
+  document.getElementById("ob-cat-actions").hidden = true;
+
+  if (key === "categories") {
+    renderCategoryPicker();
+    return;
+  }
+  const isGoal = ["year", "month", "week", "day"].includes(key);
+  if (isGoal) {
+    const cats = ob.categories.length ? ob.categories : [null];
+    const cat = cats[ob.catIdx];
+    const isCustom = !cat || cat.key === "custom";
+    const multi = cats.length > 1;
+    const label = key === "year" ? "This year" : key === "month" ? "This month" : key === "week" ? "This week" : "Today";
+    document.getElementById("ob-eyebrow").textContent = label + (multi ? " · " + (isCustom ? "Custom" : cat.label) + " (" + (ob.catIdx + 1) + "/" + cats.length + ")" : "");
+    document.getElementById("ob-question").textContent = key === "year"
+      ? (isCustom ? "If this year ends and you're proud of one thing — what's it about?" : "For " + cat.label + " — what would make this year a win?")
+      : OB_GOAL_Q[key];
+    obShowDeeper(key, isCustom ? null : cat, key === "year" && ob.catIdx === 0);
+  } else {
+    const b = OB_BRIEF[key];
+    document.getElementById("ob-eyebrow").textContent = "Your rhythm";
+    document.getElementById("ob-question").textContent = b.q;
+    const optsEl = document.getElementById("ob-options");
+    b.presets.forEach(p => optsEl.appendChild(obOptButton(p, "", () => obAnswerBrief(key, p))));
+    optsEl.appendChild(obOptButton("Something else…", "", () => obShowDeeperBrief(key)));
+  }
+}
+function renderCategoryPicker() {
+  document.getElementById("ob-eyebrow").textContent = "Let's set some direction";
+  document.getElementById("ob-question").textContent = "What matters to you right now? Pick up to " + OB_CAT_CAP + " — focus beats a long list.";
+  const optsEl = document.getElementById("ob-options");
+  optsEl.innerHTML = "";
+  const choices = OB_CATEGORIES.concat([{ key: "custom", label: "Something else", year: "", month: "", week: "", day: "" }]);
+  choices.forEach(cat => {
+    const picked = ob.categories.some(c => c.key === cat.key);
+    const capped = !picked && ob.categories.length >= OB_CAT_CAP;
+    const b = obOptButton((picked ? "✓ " : "") + cat.label, cat.year, () => { if (capped) return; toggleCategory(cat); });
+    b.classList.toggle("picked", picked);
+    b.classList.toggle("capped", capped);
+    optsEl.appendChild(b);
+  });
+  const actions = document.getElementById("ob-cat-actions");
+  actions.hidden = false;
+  const hint = document.getElementById("ob-cat-hint");
+  const n = ob.categories.length;
+  hint.textContent = n === 0 ? "Choose what you want this planner to actually help with."
+    : n === 1 ? "Solid focus. Add a second if something else matters just as much — or keep it tight."
+    : n === 2 ? "Good spread — that's plenty to start with."
+    : "That's the cap — " + OB_CAT_CAP + " keeps every goal getting real attention.";
+  const cont = document.getElementById("ob-cat-continue");
+  cont.disabled = n === 0;
+  cont.onclick = () => { ob.i = 1; ob.catIdx = 0; obRender(); };
+}
+function toggleCategory(cat) {
+  const idx = ob.categories.findIndex(c => c.key === cat.key);
+  if (idx >= 0) ob.categories.splice(idx, 1);
+  else { if (ob.categories.length >= OB_CAT_CAP) return; ob.categories.push(cat); }
+  renderCategoryPicker();
+}
+function obShowDeeper(horizonKey, category, allowBack) {
+  const optsEl = document.getElementById("ob-options");
+  const example = category ? category[horizonKey] : "";
+  if (example) optsEl.appendChild(obOptButton('Use: “' + example + '”', "", () => obAnswerGoal(horizonKey, example)));
+  const form = document.getElementById("ob-deeper-form");
+  const input = document.getElementById("ob-input");
+  form.hidden = false;
+  document.getElementById("ob-deeper-label").textContent = "Or write your own";
+  input.placeholder = example || "Type your goal…";
+  input.value = "";
   input.focus();
-  if (savedChips === null) savedChips = coActionsEl.innerHTML;
-  coActionsEl.innerHTML = "";
-  const mk = (label, fn) => {
-    const b = document.createElement("button");
-    b.className = "chip"; b.type = "button"; b.textContent = label;
-    b.addEventListener("click", fn); coActionsEl.appendChild(b);
+  const backBtn = document.getElementById("ob-back");
+  backBtn.hidden = !allowBack;
+  backBtn.onclick = () => { ob.i = 0; ob.catIdx = 0; obRender(); };
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) obAnswerGoal(horizonKey, text);
   };
-  mk("Skip this →", () => wizNext());
-  mk("✓ Finish setup", () => wizFinish());
 }
-async function wizAnswer(text) {
-  const step = WIZ_STEPS[wiz.i];
-  if (step.kind === "goal") { await addGoal(step.hid, text); wiz.lastGoal = text; wiz.added++; }
-  else wiz.brief[step.bkey] = text;
-  wizNext();
+function obShowDeeperBrief(key) {
+  document.getElementById("ob-options").innerHTML = "";
+  const form = document.getElementById("ob-deeper-form");
+  const input = document.getElementById("ob-input");
+  form.hidden = false;
+  document.getElementById("ob-deeper-label").textContent = "Your answer";
+  input.placeholder = "Type it…";
+  input.value = "";
+  input.focus();
+  const backBtn = document.getElementById("ob-back");
+  backBtn.hidden = false;
+  backBtn.onclick = () => obRender();
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) obAnswerBrief(key, text);
+  };
 }
-function wizNext() {
-  wiz.i++;
-  if (wiz.i >= WIZ_STEPS.length) wizFinish(); else wizRender();
+async function obAnswerGoal(horizonKey, text) {
+  await addGoal(horizonKey, text);
+  ob.added++;
+  obAdvanceGoal();
 }
-async function wizFinish() {
-  const b = wiz.brief, lines = [];
+function obAnswerBrief(key, value) {
+  ob.brief[key] = value;
+  obNext();
+}
+function obAdvanceGoal() {
+  const cats = ob.categories.length ? ob.categories : [null];
+  ob.catIdx++;
+  if (ob.catIdx < cats.length) { obRender(); return; }
+  ob.catIdx = 0;
+  obNext();
+}
+function obNext() {
+  ob.i++;
+  if (ob.i >= OB_STEPS.length) obFinish(); else obRender();
+}
+document.getElementById("ob-skip-step").addEventListener("click", () => {
+  const key = OB_STEPS[ob.i];
+  if (key === "categories") { ob.categories = []; obNext(); return; }
+  if (["year", "month", "week", "day"].includes(key)) { obAdvanceGoal(); return; }
+  obNext();
+});
+document.getElementById("ob-skip-all").addEventListener("click", () => obFinish());
+
+async function obFinish() {
+  const b = ob.brief;
+  const lines = [];
   if (b.hours) lines.push("Work hours: " + b.hours + ".");
   if (b.commit) lines.push("Recurring commitments: " + b.commit + ".");
   if (b.energy) lines.push("Deep work is best: " + b.energy + ".");
   if (b.protect) lines.push("Never schedule over: " + b.protect + ".");
-  if (lines.length) {
+  const briefText = lines.join(" ");
+  const added = ob.added;
+  ob = null;
+  try { localStorage.setItem("horizon.onboarding.done", "1"); } catch (e) {}
+  onboardingView.hidden = true;
+  appView.hidden = false;
+  await boot(); // creates/loads the real profile row + renders the dashboard with what we just added
+
+  if (briefText) {
     const existing = (profile.context || "").trim();
     const keep = existing && existing.length > 8 ? existing + "\n" : "";
-    profile.context = (keep + lines.join(" ")).slice(0, 4000);
+    profile.context = (keep + briefText).slice(0, 4000);
     document.getElementById("context-text").value = profile.context;
-    if (!DEMO && profile.user_id !== "demo") {
+    if (!DEMO && profile.user_id) {
       const { error } = await sb.from("profiles").update({ context: profile.context }).eq("user_id", profile.user_id);
       if (error) toast("Couldn't save briefing: " + error.message);
     }
   }
-  const added = wiz.added, briefed = lines.length > 0;
-  wiz = null;
-  if (savedChips !== null) { coActionsEl.innerHTML = savedChips; savedChips = null; bindChips(); }
-  document.getElementById("ask-input").placeholder = "Ask the copilot… (e.g. “what's left this month?”)";
-  speak(added || briefed
-    ? "That's a real board now — <strong>" + added + " goal" + (added === 1 ? "" : "s") + "</strong> set" + (briefed ? " and your planner briefed" : "") + ". 🎉 At 7:05 tomorrow it plans your day from this. Refine anytime — the 🧭 chip reruns this."
+  speak(added || briefText
+    ? "That's a real board now" + (added ? " — <strong>" + added + " goal" + (added === 1 ? "" : "s") + "</strong> set" : "") + (briefText ? (added ? " and" : " —") + " your planner briefed" : "") + ". 🎉 At 7:05 tomorrow it plans your day from this. Refine anytime — the 🧭 chip reruns this."
     : "No worries — the 🧭 chip is here whenever you want a guided setup.");
 }
 
@@ -1477,12 +1918,18 @@ function demoInsightRows() {
 
 /* ---------- theme ---------- */
 const root = document.documentElement;
-const savedTheme = localStorage.getItem("horizon.theme");
-if (savedTheme) root.setAttribute("data-theme", savedTheme);
+const savedTheme = localStorage.getItem("horizon.theme") || "light"; // light is the default look; OS dark preference no longer auto-applies
+root.setAttribute("data-theme", savedTheme);
+let themeFadeTimer;
 document.getElementById("theme").addEventListener("click", () => {
   let cur = root.getAttribute("data-theme");
   if (!cur) cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const next = cur === "dark" ? "light" : "dark";
+  if (!reduceMotion) { // ease the dark↔light swap instead of hard-cutting brightness
+    root.classList.add("theme-fade");
+    clearTimeout(themeFadeTimer);
+    themeFadeTimer = setTimeout(() => root.classList.remove("theme-fade"), 260);
+  }
   root.setAttribute("data-theme", next);
   try { localStorage.setItem("horizon.theme", next); } catch (e) {}
 });
@@ -1532,6 +1979,11 @@ async function boot() {
   root.classList.add("booting");
   if (DEMO) {
     state = demoData();
+    // Dev-only: ?demo=1&sparse=year renders a just-onboarded board (year goals
+    // set, rest empty); &sparse=all renders a skipped-everything board.
+    const sparse = new URLSearchParams(location.search).get("sparse");
+    if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
+    else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
     Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
     profile = { streak: 4, last_complete: periodFor("day"), context: "Demo mode — sample data only, nothing is saved.", deep_work_target_hours: 10, user_id: "demo" };
     document.getElementById("context-text").value = profile.context;
@@ -1543,9 +1995,7 @@ async function boot() {
   }
   render();
   renderHabits();
-  const totalGoals = state.day.length + state.week.length + state.month.length + state.year.length;
-  if (totalGoals === 0 && !DEMO) wizStart(true);   // empty board → guided setup
-  else speak(briefing());
+  speak(briefing()); // onboarding (if any) already ran before boot() was called — see routeAfterAuth()
   setTimeout(() => root.classList.remove("booting"), 900);
 }
 </script>
