@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horizon — Skyline design concept</title>
+<style>
+  /* =========================================================
+     SKYLINE — a design concept for Horizon
+     The horizon metaphor, made literal: every column is a sky
+     at a different time of day, and the sun rises over the
+     horizon line as you complete that column. Demo data only.
+     ========================================================= */
+  :root {
+    --paper: #F7F2E9; --paper-2: #FFFDF8;
+    --ink: #241F33; --ink-2: #5A5470; --ink-3: #8D87A3;
+    --line: #E4DCCC;
+    --gold: #E8A33D;
+    --crit: #C94F6D;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --dur-fast: 130ms; --dur-mid: 200ms; --dur-slow: 260ms;
+    --radius: 20px;
+    --shadow: 0 24px 48px -28px rgba(48, 34, 80, .38);
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "Cascadia Mono", "SF Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 500px at 50% -12%, #FBE3C4AA, transparent 62%),
+      var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 34px 24px 72px; }
+
+  /* ---- masthead: editorial, quiet ---- */
+  .mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 8px; }
+  h1 {
+    font-family: var(--font-display); font-weight: 500; font-style: italic;
+    font-size: clamp(2.1rem, 5vw, 3rem); line-height: 1.02; letter-spacing: -0.02em; margin: 0;
+  }
+  h1 .sunmark { color: var(--gold); font-style: normal; }
+  .mast-sub { font-size: .8125rem; color: var(--ink-2); margin: 6px 0 0; max-width: 44ch; line-height: 1.5; }
+  .mast-meta { text-align: right; font-size: .75rem; color: var(--ink-3); line-height: 1.6; }
+  .mast-meta .streak { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 700; font-size: 1rem; }
+
+  .rule { border: none; border-top: 1px solid var(--line); margin: 20px 0 26px; }
+
+  /* ---- the four skies ---- */
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  @media (max-width: 1120px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px)  { .grid { grid-template-columns: 1fr; } }
+
+  .col {
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    animation: rise .5s var(--ease-out) both;
+  }
+  .col:nth-child(2) { animation-delay: 50ms; }
+  .col:nth-child(3) { animation-delay: 100ms; }
+  .col:nth-child(4) { animation-delay: 150ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+  /* sky header: fixed mood per horizon; the SUN carries the progress */
+  .sky { position: relative; height: 132px; overflow: hidden; }
+  .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .col.day   { --c: #C4571F; --c-strong: #A8430F; --sky-hi: #FFD9A8; --sky-lo: #FFB37E; --sun: #FF8A3D; --horizon-ink: #B3591F; }
+  .col.week  { --c: #B23A72; --c-strong: #98255B; --sky-hi: #FFC7DC; --sky-lo: #FF8FB4; --sun: #FF5E94; --horizon-ink: #B23A72; }
+  .col.month { --c: #5B3FBF; --c-strong: #4930A6; --sky-hi: #CDBEF7; --sky-lo: #9D85E8; --sun: #7A5CFF; --horizon-ink: #5B3FBF; }
+  .col.year  { --c: #0F7E6E; --c-strong: #0A6357; --sky-hi: #12313F; --sky-lo: #0E5A50; --sun: #2FE0BF; --horizon-ink: #2FE0BF; }
+  .sky-fill { fill: url(#g-day); }
+
+  /* the sun: cy is driven by completion, transition makes it *rise* */
+  .sun { transition: cy .6s var(--ease-in-out); }
+  .sun-glow { transition: cy .6s var(--ease-in-out), opacity .6s var(--ease-out); }
+
+  .sky .pct {
+    position: absolute; right: 14px; top: 12px;
+    font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+    font-size: .8125rem; font-weight: 700; color: #fff;
+    background: #00000026; padding: 3px 9px; border-radius: 999px;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .sky .col-name {
+    position: absolute; left: 16px; bottom: 10px;
+    font-family: var(--font-display); font-style: italic; font-weight: 500;
+    font-size: 1.5rem; letter-spacing: -0.015em; color: #fff;
+    text-shadow: 0 1px 14px rgba(0,0,0,.28);
+  }
+  .sky .col-eyebrow {
+    position: absolute; left: 16px; top: 12px;
+    font-size: .625rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    color: #ffffffd9;
+  }
+
+  .col-body { padding: 14px 14px 14px; display: flex; flex-direction: column; flex: 1; }
+  .col-sub { font-size: .71875rem; color: var(--ink-3); margin: 0 2px 10px; }
+
+  /* tasks: quieter than v2 — rules between rows, not boxes */
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .task {
+    display: flex; align-items: center; gap: 11px; padding: 10px 4px;
+    border-bottom: 1px solid var(--line);
+    transition: opacity var(--dur-mid) var(--ease-out);
+  }
+  .task:last-child { border-bottom: none; }
+  .check {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--c); flex: none;
+    cursor: pointer; display: grid; place-items: center; background: transparent; padding: 0;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .check:active { transform: scale(.88); }
+  .check:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .check svg { width: 12px; height: 12px; opacity: 0; transform: scale(.6);
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+  .task.done .check { background: var(--c); }
+  .task.done .check svg { opacity: 1; transform: scale(1); }
+  .task-txt { flex: 1; font-size: .875rem; line-height: 1.4; transition: color var(--dur-mid) var(--ease-out); }
+  .task.done .task-txt { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--c); }
+  .del {
+    border: none; background: transparent; color: var(--ink-3); cursor: pointer;
+    font-size: 1rem; line-height: 1; padding: 2px 4px; border-radius: 6px; opacity: 0;
+    transition: color var(--dur-fast) ease, opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) { .task:hover .del { opacity: 1; } }
+  @media (hover: none) { .del { opacity: .5; } }
+  .del:hover { color: var(--crit); }
+  .del:active { transform: scale(.9); }
+  .del:focus-visible { opacity: 1; outline: 2px solid var(--c); outline-offset: 2px; }
+
+  .add { display: flex; gap: 8px; margin-top: auto; padding-top: 14px; }
+  .add input {
+    flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--line);
+    border-radius: 0; padding: 7px 2px; font-size: .84375rem; font-family: var(--font-body);
+    color: var(--ink); min-width: 0; transition: border-color var(--dur-fast) ease;
+  }
+  .add input::placeholder { color: var(--ink-3); font-style: italic; }
+  .add input:focus { outline: none; border-bottom-color: var(--c); }
+  .add button {
+    border: none; background: transparent; color: var(--c); font-weight: 700; font-size: 1.25rem;
+    width: 34px; cursor: pointer; flex: none; line-height: 1; border-radius: 8px;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .add button:active { transform: scale(.85); }
+  .add button:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+
+  .col-foot { display: flex; justify-content: space-between; margin-top: 12px; font-size: .71875rem; color: var(--ink-3); }
+  .col-foot b { color: var(--c-strong); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  footer { margin-top: 34px; text-align: center; font-size: .75rem; color: var(--ink-3); line-height: 1.7; }
+  footer .tag { font-family: var(--font-display); font-style: italic; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .col { animation: none; }
+    .sun, .sun-glow { transition: opacity .2s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1>Horizon <span class="sunmark">☀</span></h1>
+      <p class="mast-sub">Skyline concept — every horizon is a sky. Check things off and watch the sun rise over it.</p>
+    </div>
+    <div class="mast-meta">
+      <div id="date-line">—</div>
+      <div><span class="streak">🔥 4</span> day streak</div>
+    </div>
+  </header>
+  <hr class="rule">
+  <main class="grid" id="grid"></main>
+  <footer>
+    <span class="tag">Skyline</span> — a design concept for Horizon. Demo data only; nothing is saved.<br>
+    Dawn for today · midday for the week · dusk for the month · night for the year.
+  </footer>
+</div>
+
+<script>
+const HORIZONS = [
+  { id: "day",   eyebrow: "Dawn · right now",   name: "Today",      sub: "clear it, keep the streak", stars: false },
+  { id: "week",  eyebrow: "Midday · this cycle", name: "This Week",  sub: "the short game", stars: false },
+  { id: "month", eyebrow: "Dusk · the stretch",  name: "This Month", sub: "the medium game", stars: false },
+  { id: "year",  eyebrow: "Night · the long arc", name: "This Year", sub: "who you're becoming", stars: true }
+];
+const state = {
+  day: [
+    { id: 1, text: "Reply to the client proposal thread", done: true },
+    { id: 2, text: "30-minute run before it gets hot", done: false },
+    { id: 3, text: "Draft the Q3 goals doc", done: false },
+    { id: 4, text: "Meditate 10 minutes", done: true }
+  ],
+  week: [
+    { id: 5, text: "Ship the v2 dashboard redesign", done: false },
+    { id: 6, text: "Book dentist follow-up", done: true },
+    { id: 7, text: "Read two chapters of Deep Work", done: false }
+  ],
+  month: [
+    { id: 8, text: "Close out the Q3 planning doc", done: false },
+    { id: 9, text: "Hit 12 workouts this month", done: false },
+    { id: 10, text: "Launch the referral program", done: true }
+  ],
+  year: [
+    { id: 11, text: "Grow the business to 7 figures", done: false },
+    { id: 12, text: "Run a half marathon", done: false },
+    { id: 13, text: "Read 24 books", done: false }
+  ]
+};
+let nextId = 100;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const W = 320, H = 132, HORIZON_Y = 104; // viewBox geometry for the sky
+function sunY(pct) {
+  // 0% = just kissing the horizon from below; 100% = high in the sky
+  const below = HORIZON_Y + 14, high = 30;
+  return below + (high - below) * (pct / 100);
+}
+function stat(k) {
+  const arr = state[k], total = arr.length, done = arr.filter(t => t.done).length;
+  return { total, done, pct: total ? Math.round(done / total * 100) : 0, left: total - done };
+}
+
+function skySVG(h, pct) {
+  const y = sunY(pct).toFixed(1);
+  const stars = h.stars
+    ? Array.from({ length: 26 }, (_, i) => {
+        const sx = ((i * 73) % W).toFixed(0), sy = ((i * 37) % (HORIZON_Y - 14) + 6).toFixed(0);
+        const r = (i % 3 === 0 ? 1.3 : 0.8);
+        return `<circle cx="${sx}" cy="${sy}" r="${r}" fill="#CFF6EC" opacity="${(0.25 + (i % 5) * 0.13).toFixed(2)}"/>`;
+      }).join("")
+    : "";
+  return `
+  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky-${h.id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--sky-hi)"/><stop offset="1" stop-color="var(--sky-lo)"/>
+      </linearGradient>
+      <radialGradient id="glow-${h.id}">
+        <stop offset="0" stop-color="var(--sun)" stop-opacity=".55"/>
+        <stop offset="1" stop-color="var(--sun)" stop-opacity="0"/>
+      </radialGradient>
+      <clipPath id="above-${h.id}"><rect x="0" y="0" width="${W}" height="${HORIZON_Y}"/></clipPath>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#sky-${h.id})"/>
+    ${stars}
+    <g clip-path="url(#above-${h.id})">
+      <circle class="sun-glow" cx="${W / 2}" cy="${y}" r="46" fill="url(#glow-${h.id})" opacity="${pct > 0 ? 1 : .5}"/>
+      <circle class="sun" cx="${W / 2}" cy="${y}" r="13" fill="var(--sun)"/>
+    </g>
+    <line x1="0" y1="${HORIZON_Y}" x2="${W}" y2="${HORIZON_Y}" stroke="var(--horizon-ink)" stroke-width="1.5" opacity=".85"/>
+    <rect x="0" y="${HORIZON_Y}" width="${W}" height="${H - HORIZON_Y}" fill="var(--sky-lo)" opacity=".35"/>
+  </svg>`;
+}
+
+const grid = document.getElementById("grid");
+
+function colEl(h) {
+  const s = stat(h.id);
+  const col = document.createElement("section");
+  col.className = "col " + h.id;
+  col.dataset.hid = h.id;
+  col.innerHTML = `
+    <div class="sky">${skySVG(h, s.pct)}
+      <span class="col-eyebrow">${h.eyebrow}</span>
+      <span class="pct">${s.pct}%</span>
+      <span class="col-name">${h.name}</span>
+    </div>
+    <div class="col-body">
+      <p class="col-sub">${h.sub}</p>
+      <ul class="list"></ul>
+      <form class="add"><input type="text" placeholder="add to ${h.name.toLowerCase()}…" aria-label="Add to ${h.name}" maxlength="200"><button type="submit" aria-label="Add">+</button></form>
+      <div class="col-foot"><span>${s.done} of ${s.total} done</span><b>${s.left} left</b></div>
+    </div>`;
+  const ul = col.querySelector("ul");
+  state[h.id].forEach(t => ul.appendChild(taskEl(h.id, t)));
+  col.querySelector("form").addEventListener("submit", e => {
+    e.preventDefault();
+    const inp = e.target.querySelector("input");
+    const text = inp.value.trim();
+    if (!text) return;
+    const t = { id: nextId++, text, done: false };
+    state[h.id].push(t);
+    ul.appendChild(taskEl(h.id, t));
+    inp.value = "";
+    updateCol(h.id);
+  });
+  return col;
+}
+
+function taskEl(hid, t) {
+  const li = document.createElement("li");
+  li.className = "task" + (t.done ? " done" : "");
+  li.dataset.id = t.id;
+  li.innerHTML = `
+    <button class="check" aria-pressed="${t.done}" aria-label="${t.done ? "Mark not done" : "Mark done"}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>
+    </button>
+    <span class="task-txt"></span>
+    <button class="del" aria-label="Delete">×</button>`;
+  li.querySelector(".task-txt").textContent = t.text;
+  li.querySelector(".check").addEventListener("click", () => {
+    t.done = !t.done;
+    li.classList.toggle("done", t.done);
+    li.querySelector(".check").setAttribute("aria-pressed", String(t.done));
+    li.querySelector(".check").setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
+    updateCol(hid);
+  });
+  li.querySelector(".del").addEventListener("click", async () => {
+    state[hid] = state[hid].filter(x => x.id !== t.id);
+    if (!reduceMotion && li.animate) {
+      li.style.overflow = "hidden"; li.style.pointerEvents = "none";
+      const anim = li.animate(
+        [{ opacity: 1, height: li.offsetHeight + "px" }, { opacity: 0, height: "0px" }],
+        { duration: 200, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" });
+      await Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 300))]);
+    }
+    li.remove();
+    updateCol(hid);
+  });
+  return li;
+}
+
+// the payoff interaction: completion moves the sun, not a ring
+function updateCol(hid) {
+  const col = grid.querySelector('.col[data-hid="' + hid + '"]');
+  const s = stat(hid);
+  const y = sunY(s.pct).toFixed(1);
+  col.querySelector(".sun").setAttribute("cy", y);
+  const glow = col.querySelector(".sun-glow");
+  glow.setAttribute("cy", y);
+  glow.setAttribute("opacity", s.pct > 0 ? 1 : .5);
+  col.querySelector(".pct").textContent = s.pct + "%";
+  col.querySelector(".col-foot span").textContent = s.done + " of " + s.total + " done";
+  col.querySelector(".col-foot b").textContent = s.left + " left";
+}
+
+HORIZONS.forEach(h => grid.appendChild(colEl(h)));
+document.getElementById("date-line").textContent =
+  new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+</script>
+</body>
+</html>
