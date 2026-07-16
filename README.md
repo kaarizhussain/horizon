@@ -36,10 +36,12 @@ Discord — with structured data an iPhone Shortcut turns into Reminders.
   mornings") that the morning planner honors strictly.
 - **Per-goal notes, drag-to-reorder** (pointer events, velocity-aware settle),
   light/dark themes, reduced-motion and touch support throughout.
-- **Design system** — violet-ink ground with tangerine/pink/violet/teal horizon
-  hues; motion audited against Emil Kowalski's animation standards and Apple's
-  design principles (ease-out tokens, sub-300ms durations, press feedback,
-  translucent chrome with accessibility fallbacks).
+- **Design system (v3)** — warm editorial palette (cream/paper ground,
+  terracotta accent, sage green), Newsreader serif + Hanken Grotesk body,
+  sidebar app shell with a right-side copilot dock; motion audited against
+  Emil Kowalski's animation standards and Apple's design principles
+  (ease-out tokens, sub-300ms durations, press feedback, reduced-motion and
+  touch support throughout).
 
 ## Architecture
 
@@ -70,7 +72,7 @@ planning — the assistant never writes time blocks.
 
 ## Repo map
 
-- `index.html` — production app (v2)
+- `index.html` — production app (v3, warm editorial redesign)
 - `legacy-v1.html` — pre-week-horizon build, kept for reference
 - `edge-board.ts` / `edge-plan.ts` / `edge-send-msg.ts` — deployed function sources
 - `migrations-pending.sql` — applied 2026-07-13 (week horizon, notes, plans)
