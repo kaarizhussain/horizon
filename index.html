@@ -545,21 +545,25 @@
   /* ---- responsive ---- */
   @media (max-width: 920px) {
     .shell { flex-direction: column; }
-    .side { width: 100%; flex-direction: row; align-items: center; padding: 10px 14px; gap: 10px; border-right: none; border-bottom: 1px solid var(--line); }
+    .side { width: 100%; min-width: 0; flex-direction: row; align-items: center; padding: 10px 14px; gap: 8px; border-right: none; border-bottom: 1px solid var(--line); }
     .side-brand { padding: 0 6px 0 0; }
     .side-brand .side-word { display: none; }
-    .nav { flex-direction: row; flex: 1; }
-    .nav button { width: auto; padding: 9px 11px; }
+    .nav { flex-direction: row; flex: 1; min-width: 0; overflow-x: auto; gap: 2px; }
+    .nav button { width: auto; padding: 9px 11px; flex: none; }
     .nav button span { display: none; }
-    .side-bottom { margin: 0; flex-direction: row; align-items: center; gap: 8px; }
+    .side-bottom { margin: 0; flex-direction: row; align-items: center; gap: 8px; flex: none; }
     .streak-card { padding: 6px 11px; border-radius: 10px; }
     .streak-card .lbl, .streak-card .sub { display: none; }
     .streak-card .row { margin: 0; }
     .streak-card .n { font-size: 1.125rem; }
-    .side-user .who { display: none; }
+    .side-user { gap: 4px; }
+    .side-user .who, .side-user .avatar { display: none; }
     .main-head { padding: 16px 18px; }
     .content { padding: 20px 16px; }
-    .dock { position: fixed; inset: 0 0 0 auto; width: min(380px, 100vw); z-index: 60; box-shadow: -18px 0 50px -30px rgba(43,39,33,.5); }
+    .dock { position: fixed; inset: 0 0 0 auto; width: min(380px, 100vw); max-width: 100vw; z-index: 60; box-shadow: -18px 0 50px -30px rgba(43,39,33,.5); }
+  }
+  @media (max-width: 640px) {
+    .dock { inset: 0; width: auto; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -639,23 +643,23 @@
     </div>
 
     <nav class="nav" id="nav">
-      <button data-tab="today" class="active">
+      <button data-tab="today" class="active" aria-label="Today">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <span>Today</span>
       </button>
-      <button data-tab="goals">
+      <button data-tab="goals" aria-label="Goals">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg>
         <span>Goals</span>
       </button>
-      <button data-tab="habits">
+      <button data-tab="habits" aria-label="Habits">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L16 8"/><rect x="4" y="4" width="16" height="16" rx="4"/></svg>
         <span>Habits</span>
       </button>
-      <button data-tab="insights">
+      <button data-tab="insights" aria-label="Insights">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>
         <span>Insights</span>
       </button>
-      <button data-tab="briefing">
+      <button data-tab="briefing" aria-label="Briefing">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         <span>Briefing</span>
       </button>
@@ -1110,7 +1114,10 @@ async function saveNotes(hid, id, val) {
   const t = state[hid].find(x => x.id === id);
   if (t) t.notes = val;
   const btn = document.querySelector('.task[data-id="' + id + '"] .note-btn');
-  if (btn) btn.classList.toggle("has-notes", !!val.trim());
+  if (btn) {
+    btn.classList.toggle("has-notes", !!val.trim());
+    btn.setAttribute("aria-label", val.trim() ? "Edit note" : "Add note");
+  }
   if (DEMO) return;
   const { error } = await sb.from("goals").update({ notes: val }).eq("id", id);
   if (error) toast("Couldn't save note: " + error.message);
@@ -1213,10 +1220,12 @@ document.getElementById("habit-freq").addEventListener("change", (e) => {
 (function initDayPicker() {
   const wrap = document.getElementById("habit-days");
   const names = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const full = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   names.forEach((n, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.textContent = n; b.dataset.day = i;
-    b.addEventListener("click", () => b.classList.toggle("on"));
+    b.setAttribute("aria-label", full[i]); b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => { const on = b.classList.toggle("on"); b.setAttribute("aria-pressed", String(on)); });
     wrap.appendChild(b);
   });
 })();
@@ -1228,7 +1237,7 @@ document.getElementById("habit-form").addEventListener("submit", (e) => {
   if (freq === "custom" && !days.length) { toast("Pick at least one day for a custom habit."); return; }
   addHabit(text, freq, days);
   document.getElementById("habit-text").value = "";
-  document.querySelectorAll("#habit-days button.on").forEach(b => b.classList.remove("on"));
+  document.querySelectorAll("#habit-days button.on").forEach(b => { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); });
 });
 
 /* ---------- streak ---------- */
@@ -1297,6 +1306,7 @@ function readDwtInput() {
 document.getElementById("context-save").addEventListener("click", async () => {
   const val = document.getElementById("context-text").value.slice(0, 4000);
   const dwt = readDwtInput();
+  document.getElementById("dwt-input").value = dwt ?? ""; // reflect the clamped value in the field
   const saved = document.getElementById("context-saved");
   if (DEMO) {
     profile.context = val;
@@ -1399,6 +1409,7 @@ function taskEl(hid, task) {
   const commitEstimate = () => {
     const v = estInput.value.trim();
     const minutes = v ? Math.max(1, Math.min(600, Math.round(Number(v)))) : null;
+    if (v) estInput.value = minutes; // reflect the clamped value in the field
     saveEstimate(hid, task.id, minutes);
     let badge = li.querySelector(".task-sub .dur");
     if (minutes) {
@@ -1899,7 +1910,9 @@ function obRender() {
     const isCustom = !cat || cat.key === "custom";
     const multi = cats.length > 1;
     const label = key === "year" ? "This year" : key === "month" ? "This month" : key === "week" ? "This week" : "Today";
-    document.getElementById("ob-eyebrow").textContent = label + (multi ? " · " + (isCustom ? "Custom" : cat.label) + " (" + (ob.catIdx + 1) + "/" + cats.length + ")" : "");
+    document.getElementById("ob-eyebrow").textContent = label +
+      (multi ? " · " + (isCustom ? "Custom" : cat.label) + " (" + (ob.catIdx + 1) + "/" + cats.length + ")"
+             : (cat && !isCustom ? " · " + cat.label : ""));
     document.getElementById("ob-question").textContent = key === "year"
       ? (isCustom ? "If this year ends and you're proud of one thing — what's it about?" : "For " + cat.label + " — what would make this year a win?")
       : OB_GOAL_Q[key];
@@ -2190,12 +2203,18 @@ async function boot() {
   if (booted) return;
   booted = true;
   if (DEMO) {
-    state = demoData();
-    const sparse = new URLSearchParams(location.search).get("sparse");
-    if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
-    else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
-    Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
-    profile = { streak: 4, last_complete: periodFor("day"), context: "Demo mode — sample data only, nothing is saved.", deep_work_target_hours: 10, display_name: "Demo", user_id: "demo" };
+    // Preserve goals added during the guided-onboarding demo instead of
+    // clobbering them with the canned sample board.
+    const hasOnboardingGoals = Object.values(state).some(a => a.length);
+    if (!hasOnboardingGoals) {
+      state = demoData();
+      const sparse = new URLSearchParams(location.search).get("sparse");
+      if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
+      else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
+      Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
+    }
+    // last_complete = yesterday so clearing Today actually advances the demo streak
+    profile = { streak: 4, last_complete: localYMD(new Date(Date.now() - 86400000)), context: "Demo mode — sample data only, nothing is saved.", deep_work_target_hours: 10, display_name: "Demo", user_id: "demo" };
     document.getElementById("context-text").value = profile.context;
     document.getElementById("dwt-input").value = profile.deep_work_target_hours;
     document.getElementById("name-input").value = profile.display_name;
