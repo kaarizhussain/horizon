@@ -1696,6 +1696,46 @@ function bubble(html, mine) {
 }
 function speak(html) { bubble(html, false); }
 
+// Live-AI answers are untrusted text from a real model call — escape first,
+// then allow a narrow **bold** -> <strong> transform on the now-safe text.
+// (Canned responses elsewhere are our own hardcoded HTML and stay as-is.)
+function formatAiAnswer(raw) {
+  return esc(raw).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function bubblePlaceholder() {
+  const div = document.createElement("div");
+  div.className = "msg-ai";
+  div.textContent = "···";
+  dockMsgs.appendChild(div);
+  while (dockMsgs.children.length > 24) dockMsgs.firstChild.remove();
+  dockMsgs.scrollTop = dockMsgs.scrollHeight;
+  return div;
+}
+
+// Free-text questions go to the real copilot edge function (a genuine Claude
+// call reading the user's live board) instead of the local keyword-matcher.
+// Demo mode and the quick-reply chips still use the deterministic local
+// answers — the chips are already correct and instant, no reason to add
+// latency/cost there. Falls back to the local answer if the call fails.
+async function askCopilot(question) {
+  if (DEMO) { speak(freeText(question)); return; }
+  const placeholder = bubblePlaceholder();
+  try {
+    const { data, error } = await sb.functions.invoke("copilot", { body: { question } });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || "unknown error");
+    placeholder.innerHTML = formatAiAnswer(data.answer);
+  } catch (e) {
+    placeholder.innerHTML = "Couldn't reach the AI copilot just now — " + freeText(question);
+  }
+  dockMsgs.scrollTop = dockMsgs.scrollHeight;
+  if (!reduceMotion && placeholder.animate) {
+    placeholder.animate([{ opacity: 0.25, filter: "blur(3px)" }, { opacity: 1, filter: "blur(0px)" }],
+      { duration: 190, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+  }
+}
+
 const HNAME = { day: '<span class="h-day">Today</span>', week: '<span class="h-week">This Week</span>', month: '<span class="h-month">This Month</span>', year: '<span class="h-year">This Year</span>' };
 
 function greeting() {
@@ -1817,7 +1857,7 @@ document.getElementById("ask-form").addEventListener("submit", (e) => {
   const q = inp.value.trim();
   if (!q) return;
   bubble(q, true);
-  speak(freeText(q));
+  askCopilot(q);
   inp.value = "";
 });
 
