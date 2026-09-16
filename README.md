@@ -26,6 +26,11 @@ data, not a script.
 That's the whole product. Everything else exists to support that loop or to
 demonstrate it working.
 
+**Product vs. implementation vs. lesson** — worth keeping separate:
+- **Product:** an AI daily operations manager. Goals + constraints + calendar in, an actionable plan out.
+- **Implementation detail:** Claude scheduled tasks, Supabase, Discord/Shortcuts for delivery. This layer is swappable — it's not the promise, it's one way to keep it.
+- **Lesson:** external automation needs monitoring and a *verified* fallback, not just one that exists on paper. See below.
+
 ## Why this is interesting as a case study
 
 **The planner is a real scheduler, not a template.** It reserves protected
@@ -45,10 +50,12 @@ and it says so instead of guessing.
 planning ran as an external scheduled Claude Code task — separate
 infrastructure from the web app, with a pg_cron fallback in the database
 specifically built to catch the scheduler going down. Both the primary and
-the fallback went silent at the same time, for two months, with nothing to
-surface it. The lesson: **a fallback that isn't exercised and monitored
-isn't actually a fallback.** That's a real reliability gap, not a hidden one
-— see `docs/internal/ALWAYS-ON.md` for how it was designed to work.
+the fallback went silent at the same time. As of this writing they're **still
+paused, deliberately** — restarting them was cheap, but doing that before
+deciding whether this layer belongs in the finished product would just be
+sinking more effort into the exact infrastructure that's in question. Not
+hidden here — see `docs/internal/ALWAYS-ON.md` for how the fallback was
+designed to work and where the monitoring gap actually was.
 
 ## Architecture
 
@@ -61,8 +68,8 @@ isn't actually a fallback.** That's a real reliability gap, not a hidden one
 | `plan` fn | Deno edge function | stores/serves structured daily plan JSON |
 | `send-msg` fn | Deno edge function | Discord webhook relay, chunked ≤3 messages |
 | `copilot` fn | Deno edge function | real AI (Claude Haiku), scoped to the caller's own data via RLS |
-| Morning planner | scheduled Claude Code task (7:05am) | reads board + calendar, composes and delivers the day |
-| Evening check-in | scheduled Claude Code task (9:07pm) | review + streak nudge |
+| Morning planner | scheduled Claude Code task (7:05am) | reads board + calendar, composes and delivers the day — **currently paused, see below** |
+| Evening check-in | scheduled Claude Code task (9:07pm) | review + streak nudge — **currently paused, see below** |
 | iPhone Reminders | Shortcuts automation (7:15am) | pulls `plan`, creates Reminders |
 
 Server-to-server edge functions (`board`/`plan`/`send-msg`) authenticate via
