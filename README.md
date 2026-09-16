@@ -1,83 +1,99 @@
-# Horizon — Goal Command Center
+# Horizon — an AI daily operations manager
 
-A personal productivity system where an AI assistant actually runs the loop:
-you set goals across four horizons, and every morning a Claude agent reads your
-board, plans a realistic day around your routine, and delivers the itinerary to
-Discord — with structured data an iPhone Shortcut turns into Reminders.
+Most task apps are a place you write things down. Horizon is the layer above
+that: it takes your goals, your standing constraints ("I work 9–5, gym M/W/F,
+deep work mornings"), and your calendar, and turns them into a specific plan
+for today — then delivers that plan into the tools you'll actually look at.
 
 **Live:** https://horizon-nu-orcin.vercel.app ([demo mode](https://horizon-nu-orcin.vercel.app/?demo=1) — no sign-in needed)
 
-## The loop
+## The core loop
 
 ```
-        you                       the assistant
-  ┌──────────────┐        ┌───────────────────────────┐
-  │ set goals on │  7:05  │ reads board + briefing +  │
-  │ the board    │──am───▶│ calendar → composes plan  │
-  └──────▲───────┘        └──────┬──────────┬─────────┘
-         │                       ▼          ▼
-         │                Discord message   plan JSON
-         │                (the narrative)   (→ iPhone Reminders
-         │                                    via Shortcuts)
-         │  9:07pm  ┌────────────────────┐
-         └──────────│ evening check-in:  │
-                    │ what got done?     │
-                    └────────────────────┘
+Goals + routine/context  →  AI plan  →  structured tasks  →  you execute  →  review
 ```
 
-## Features
+Concretely: you set goals across four horizons (today/week/month/year) and
+write a standing briefing once. Each morning an AI planner reads that board,
+checks your calendar, and composes a realistic day — front-loading deep work,
+generating concrete next actions when you're under-scheduled, honoring your
+briefing strictly. The plan ships two ways: a Discord message you'll actually
+read, and structured JSON an iPhone Shortcut turns into real Reminders. In
+the evening, a second pass reviews what got done. You can also ask the
+in-app copilot anything about your own board — it answers from your real
+data, not a script.
 
-- **Four horizons** — Today / This Week / This Month / This Year, each with its
-  own signature color and progress ring. Unfinished day-tasks roll forward
-  automatically.
-- **Streak** — advances only when *every* Today task is cleared; lapses
-  forgivingly.
-- **Assistant briefing** — a free-text panel ("I work 9–5, gym M/W/F, deep work
-  mornings") that the morning planner honors strictly.
-- **Per-goal notes, drag-to-reorder** (pointer events, velocity-aware settle),
-  light/dark themes, reduced-motion and touch support throughout.
-- **Design system (v3)** — warm editorial palette (cream/paper ground,
-  terracotta accent, sage green), Newsreader serif + Hanken Grotesk body,
-  sidebar app shell with a right-side copilot dock; motion audited against
-  Emil Kowalski's animation standards and Apple's design principles
-  (ease-out tokens, sub-300ms durations, press feedback, reduced-motion and
-  touch support throughout).
+That's the whole product. Everything else exists to support that loop or to
+demonstrate it working.
+
+## Why this is interesting as a case study
+
+**The planner is a real scheduler, not a template.** It reserves protected
+deep-work blocks around your actual calendar, estimates how much open
+deep-work time is left in the week, and only generates filler tasks when
+you're genuinely under-scheduled — derived from your week/month/year goals,
+in that priority order.
+
+**The copilot is scoped to your real data, with no service-role key
+involved.** It's the one function called directly from the browser, so it
+authenticates the caller's own Supabase session and runs every query through
+a client scoped to that JWT — Postgres row-level security does the
+authorization, not application code. Ask it something the data can't answer
+and it says so instead of guessing.
+
+**It has already taught me something by failing.** Horizon's morning/evening
+planning ran as an external scheduled Claude Code task — separate
+infrastructure from the web app, with a pg_cron fallback in the database
+specifically built to catch the scheduler going down. Both the primary and
+the fallback went silent at the same time, for two months, with nothing to
+surface it. The lesson: **a fallback that isn't exercised and monitored
+isn't actually a fallback.** That's a real reliability gap, not a hidden one
+— see `docs/internal/ALWAYS-ON.md` for how it was designed to work.
 
 ## Architecture
 
 | Piece | Tech | Notes |
 |---|---|---|
 | Web app | Single-file static HTML/JS + supabase-js | `index.html`, deployed on Vercel |
-| Database | Supabase Postgres | `goals`, `profiles`, `plans` — RLS owner-only |
+| Database | Supabase Postgres | `goals`, `profiles`, `habits`, `plans` — RLS owner-only |
 | Auth | Supabase magic link | passwordless, multi-tenant-ready |
 | `board` fn | Deno edge function | snapshot for planners; rolls day-tasks forward |
-| `send-msg` fn | Deno edge function | Discord webhook relay, chunked ≤3 messages |
 | `plan` fn | Deno edge function | stores/serves structured daily plan JSON |
-| Morning planner | Claude Code scheduled task (7:05am) | composes the day; genuinely written, not templated |
-| Evening check-in | Claude Code scheduled task (9:07pm) | review + streak nudge |
+| `send-msg` fn | Deno edge function | Discord webhook relay, chunked ≤3 messages |
+| `copilot` fn | Deno edge function | real AI (Claude Haiku), scoped to the caller's own data via RLS |
+| Morning planner | scheduled Claude Code task (7:05am) | reads board + calendar, composes and delivers the day |
+| Evening check-in | scheduled Claude Code task (9:07pm) | review + streak nudge |
 | iPhone Reminders | Shortcuts automation (7:15am) | pulls `plan`, creates Reminders |
 
-Edge functions authenticate callers via an `X-Horizon-Key` header checked
-against the `HORIZON_HOOK_KEY` secret (constant-time compare); Supabase
-`verify_jwt` is off for these routes. Calendar is **read-only** input to
-planning — the assistant never writes time blocks.
+Server-to-server edge functions (`board`/`plan`/`send-msg`) authenticate via
+an `X-Horizon-Key` header checked against a secret with a constant-time
+compare. The browser-facing `copilot` function instead authenticates the
+caller's own Supabase session JWT and never touches a service-role key.
+Calendar is **read-only** input to planning — the assistant never writes
+time blocks.
 
-### Secrets (Supabase → Edge Functions → Secrets)
+## Also in the app (real, daily-use, just not the headline)
 
-| Key | Purpose |
-|---|---|
-| `HORIZON_HOOK_KEY` | authorizes the planners + Shortcut |
-| `DISCORD_WEBHOOK_URL` | delivery channel |
-| `TWILIO_*`, `SMS_TO` | optional SMS channel (parked; US A2P rules) |
+Habit tracking, a streak that only advances when every task clears, an
+insights panel, weekly/monthly planning prompts, and a design pass audited
+against Emil Kowalski's and Apple's animation/motion standards. All live,
+all used — kept out of the main pitch because they're elaborations on the
+loop above, not the loop itself.
+
+A two-way Discord bot (`edge-discord-bot.ts`) was also built — `/board`,
+`/done`, `/add`, `/skip` — but was never armed (no `DISCORD_PUBLIC_KEY` set)
+and has never run. Kept as source, not claimed as a feature.
 
 ## Repo map
 
-- `index.html` — production app (v3, warm editorial redesign)
-- `legacy-v1.html` — pre-week-horizon build, kept for reference
-- `edge-board.ts` / `edge-plan.ts` / `edge-send-msg.ts` — deployed function sources
-- `migrations-pending.sql` — applied 2026-07-13 (week horizon, notes, plans)
-- `prompt-7am-discord.md` / `prompt-9pm-checkin.md` — scheduled-task prompts (keys redacted)
-- `SHORTCUT-SETUP.md` — iPhone Reminders setup
+- `index.html` — the app
+- `edge-board.ts` / `edge-plan.ts` / `edge-send-msg.ts` / `edge-copilot.ts` — deployed function sources
+- `edge-discord-bot.ts` — built, never activated (see above)
+- `prompt-7am-discord.md` / `prompt-9pm-checkin.md` — the two scheduled-task prompts that run the loop
+- `prompt-sunday-planning.md` / `prompt-monthly-planning.md` — secondary planning cadences
+- `SHORTCUT-SETUP.md` / `DISCORD-BOT-SETUP.md` — setup docs
+- `migrations-*.sql` — applied database migrations
 - `server.js` — tiny local dev server (`node server.js` → :8731)
+- `docs/internal/` — build history and internal planning notes, kept for reference
 
 Built collaboratively with Claude.
