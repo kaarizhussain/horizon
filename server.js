@@ -5,7 +5,7 @@ const ROOT = __dirname;
 const PORT = 8731;
 http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/horizon.html";
+  if (p === "/") p = "/index.html";
   const file = path.join(ROOT, p);
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end("no"); }
   fs.readFile(file, (err, data) => {

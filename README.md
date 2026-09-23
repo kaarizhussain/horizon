@@ -7,6 +7,9 @@ for today — then delivers that plan into the tools you'll actually look at.
 
 **Live:** https://horizon-nu-orcin.vercel.app ([demo mode](https://horizon-nu-orcin.vercel.app/?demo=1) — no sign-in needed)
 
+![Horizon demo: completing a task, opening the copilot, then viewing the week/month/year goals](assets/demo.gif)
+*Board → task completed → copilot → goals across horizons. Captured in [demo mode](https://horizon-nu-orcin.vercel.app/?demo=1), which runs on sample data with built-in copilot answers — the live copilot and the AI planner aren't shown here.*
+
 ## The core loop
 
 ```
@@ -20,8 +23,9 @@ generating concrete next actions when you're under-scheduled, honoring your
 briefing strictly. The plan ships two ways: a Discord message you'll actually
 read, and structured JSON an iPhone Shortcut turns into real Reminders. In
 the evening, a second pass reviews what got done. You can also ask the
-in-app copilot anything about your own board — it answers from your real
-data, not a script.
+in-app copilot a free-text question about your own board — it goes to
+Claude with your real data as context. (Its quick-reply buttons are
+built-in shortcuts, not AI.)
 
 That's the whole product. Everything else exists to support that loop or to
 demonstrate it working.
@@ -63,7 +67,7 @@ designed to work and where the monitoring gap actually was.
 |---|---|---|
 | Web app | Single-file static HTML/JS + supabase-js | `index.html`, deployed on Vercel |
 | Database | Supabase Postgres | `goals`, `profiles`, `habits`, `plans` — RLS owner-only |
-| Auth | Supabase magic link | passwordless, multi-tenant-ready |
+| Auth | Supabase email + password | single user; public sign-ups off — visitors use demo mode |
 | `board` fn | Deno edge function | snapshot for planners; rolls day-tasks forward |
 | `plan` fn | Deno edge function | stores/serves structured daily plan JSON |
 | `send-msg` fn | Deno edge function | Discord webhook relay, chunked ≤3 messages |
@@ -79,13 +83,13 @@ caller's own Supabase session JWT and never touches a service-role key.
 Calendar is **read-only** input to planning — the assistant never writes
 time blocks.
 
-## Also in the app (real, daily-use, just not the headline)
+## Also in the app (built and working, just not the headline)
 
 Habit tracking, a streak that only advances when every task clears, an
 insights panel, weekly/monthly planning prompts, and a design pass audited
-against Emil Kowalski's and Apple's animation/motion standards. All live,
-all used — kept out of the main pitch because they're elaborations on the
-loop above, not the loop itself.
+against Emil Kowalski's and Apple's animation/motion standards. Kept out of
+the main pitch because they're elaborations on the loop above, not the loop
+itself.
 
 A two-way Discord bot (`edge-discord-bot.ts`) was also built — `/board`,
 `/done`, `/add`, `/skip` — but was never armed (no `DISCORD_PUBLIC_KEY` set)

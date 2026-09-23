@@ -70,14 +70,6 @@
   }
   .auth-card h1 { font-size: 2.125rem; margin: 0; }
   .auth-card .sub { font-size: 0.96875rem; color: var(--muted); margin: 12px 0 24px; line-height: 1.5; }
-  .auth-tabs { display: flex; gap: 4px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
-  .auth-tab {
-    flex: 1; border: none; background: transparent; color: var(--muted); font-weight: 600; font-size: 0.8125rem;
-    padding: 8px; border-radius: 999px; cursor: pointer;
-    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-hover), color var(--dur-fast) var(--ease-hover);
-  }
-  .auth-tab.active { background: var(--accent-soft); color: var(--accent-ink); }
-  .auth-tab:active { transform: scale(.97); }
   .auth-card form { display: flex; flex-direction: column; gap: 10px; }
   .auth-card input {
     background: var(--paper); border: 1px solid var(--line); color: var(--ink);
@@ -92,7 +84,7 @@
   .auth-card button[type="submit"]:active { transform: scale(.97); }
   .auth-card button:disabled { opacity: .6; cursor: default; }
   .auth-note { font-size: 0.8125rem; color: var(--faint); margin-top: 16px; }
-  .auth-sent { color: var(--sage); font-weight: 600; }
+  .auth-note a { color: var(--accent-ink); font-weight: 600; }
 
   /* ================= ONBOARDING ================= */
   .onboarding { height: 100vh; display: grid; place-items: center; padding: 22px; overflow-y: auto; }
@@ -586,17 +578,13 @@
     </div>
     <h1 id="auth-tagline-h">Welcome to Horizon</h1>
     <p class="sub" id="auth-tagline">Your quiet command center for the day ahead.</p>
-    <div class="auth-tabs" role="tablist">
-      <button type="button" class="auth-tab active" id="auth-tab-signin" data-mode="signin" role="tab" aria-selected="true">Sign in</button>
-      <button type="button" class="auth-tab" id="auth-tab-signup" data-mode="signup" role="tab" aria-selected="false">Create account</button>
-    </div>
     <form id="auth-form">
       <input id="auth-email" type="email" required placeholder="you@example.com" autocomplete="email" aria-label="Email address" />
       <input id="auth-password" type="password" required minlength="8" placeholder="Password" autocomplete="current-password" aria-label="Password" />
       <p class="field-error" id="auth-error"></p>
       <button type="submit" id="auth-btn">Sign in</button>
     </form>
-    <p class="auth-note" id="auth-note">New here? Create an account — we'll email you a link to confirm it.</p>
+    <p class="auth-note">New here? <a href="?demo=1">Try the demo</a> — no account needed.</p>
   </div>
 </div>
 
@@ -901,7 +889,6 @@ function toast(msg) {
 const authView = document.getElementById("auth");
 const onboardingView = document.getElementById("onboarding");
 const appView = document.getElementById("app");
-let authMode = "signin";
 
 if (DEMO) {
   const banner = document.createElement("div");
@@ -943,59 +930,19 @@ async function routeAfterAuth(session) {
   }
 }
 
-function setAuthMode(mode) {
-  authMode = mode;
-  const signup = mode === "signup";
-  document.getElementById("auth-tab-signin").classList.toggle("active", !signup);
-  document.getElementById("auth-tab-signin").setAttribute("aria-selected", String(!signup));
-  document.getElementById("auth-tab-signup").classList.toggle("active", signup);
-  document.getElementById("auth-tab-signup").setAttribute("aria-selected", String(signup));
-  document.getElementById("auth-btn").textContent = signup ? "Create account" : "Sign in";
-  document.getElementById("auth-password").autocomplete = signup ? "new-password" : "current-password";
-  document.getElementById("auth-tagline").textContent = signup
-    ? "Create your account — we'll email you a link to confirm it."
-    : "Your quiet command center for the day ahead.";
-  document.getElementById("auth-error").textContent = "";
-  document.getElementById("auth-note").textContent = signup
-    ? "Password must be at least 8 characters."
-    : "New here? Create an account — we'll email you a link to confirm it.";
-}
-document.getElementById("auth-tab-signin").addEventListener("click", () => setAuthMode("signin"));
-document.getElementById("auth-tab-signup").addEventListener("click", () => setAuthMode("signup"));
-
 document.getElementById("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("auth-email").value.trim();
   const password = document.getElementById("auth-password").value;
   const errEl = document.getElementById("auth-error");
-  const noteEl = document.getElementById("auth-note");
   errEl.textContent = "";
   if (!email || !password) return;
-  if (authMode === "signup" && password.length < 8) {
-    errEl.textContent = "Password needs to be at least 8 characters.";
-    return;
-  }
   const btn = document.getElementById("auth-btn");
   btn.disabled = true;
-
-  if (authMode === "signup") {
-    btn.textContent = "Creating account…";
-    const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-    btn.disabled = false; btn.textContent = "Create account";
-    if (error) { errEl.textContent = error.message; return; }
-    if (data.session) { return; }
-    noteEl.innerHTML = '<span class="auth-sent">Check your email — click the link to confirm your account, then come back here and sign in.</span>';
-    setAuthMode("signin");
-  } else {
-    btn.textContent = "Signing in…";
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    btn.disabled = false; btn.textContent = "Sign in";
-    if (error) {
-      errEl.textContent = /confirm/i.test(error.message)
-        ? "Confirm your email first — check your inbox for the link."
-        : error.message;
-    }
-  }
+  btn.textContent = "Signing in…";
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = "Sign in";
+  if (error) errEl.textContent = error.message;
 });
 
 document.getElementById("signout").addEventListener("click", async () => {
