@@ -80,6 +80,9 @@
   .auth-card .auth-email-button { width: 100%; background: transparent; color: var(--accent-ink); border: 0; padding: 11px; margin-top: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
   .auth-card .auth-email-button:hover { text-decoration: underline; }
   .auth-card .auth-email-button:disabled { opacity: .55; cursor: wait; }
+  .auth-link-entry { margin-top: 8px; text-align: left; }
+  .auth-link-entry summary { color: var(--muted); cursor: pointer; font-size: 0.8125rem; text-align: center; }
+  .auth-link-entry form { margin-top: 12px; }
   .auth-card button[type="submit"] {
     border: none; background: var(--accent); color: #fff;
     font-weight: 600; padding: 13px; border-radius: 11px; cursor: pointer; font-size: 0.90625rem;
@@ -591,6 +594,14 @@
     </form>
     <button type="button" id="auth-email-link" class="auth-email-button">Email me a sign-in link</button>
     <p id="auth-email-status" class="auth-help" role="status" aria-live="polite"></p>
+    <details id="auth-link-entry" class="auth-link-entry">
+      <summary>Paste a sign-in link here</summary>
+      <form id="auth-link-form">
+        <input id="auth-link" type="password" autocomplete="off" aria-label="Sign-in link from email" placeholder="Paste the link from your email" required />
+        <button type="submit" id="auth-link-btn">Sign in with link</button>
+        <p class="field-error" id="auth-link-error" role="alert"></p>
+      </form>
+    </details>
     <form id="auth-code-form" hidden>
       <input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-label="Six-digit sign-in code" placeholder="Six-digit code" required />
       <button type="submit" id="auth-code-btn">Verify code</button>
@@ -1058,7 +1069,28 @@ document.getElementById("auth-email-link").addEventListener("click", async () =>
   }
   pendingOtpEmail = email;
   status.textContent = "Check your email. Open the sign-in link, or enter a six-digit code here if the message includes one.";
+  document.getElementById("auth-link-entry").open = true;
   document.getElementById("auth-code-form").hidden = false;
+});
+
+document.getElementById("auth-link-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const field = document.getElementById("auth-link");
+  const errorView = document.getElementById("auth-link-error");
+  let url;
+  try { url = new URL(field.value.trim()); }
+  catch { errorView.textContent = "Paste the full sign-in link from the email."; return; }
+  const tokenHash = url.searchParams.get("token_hash") || url.searchParams.get("token");
+  if (url.origin !== SUPABASE_URL || url.pathname !== "/auth/v1/verify" || !["magiclink", "email"].includes(url.searchParams.get("type")) || !tokenHash || tokenHash.length < 16) {
+    errorView.textContent = "That isn't a Horizon sign-in link. Copy the link from the latest email.";
+    return;
+  }
+  field.value = "";
+  const button = document.getElementById("auth-link-btn");
+  button.disabled = true; errorView.textContent = "Verifying link…";
+  const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+  button.disabled = false;
+  errorView.textContent = error ? "This link expired or was already used. Request a new sign-in email." : "";
 });
 
 document.getElementById("auth-code-form").addEventListener("submit", async (e) => {
