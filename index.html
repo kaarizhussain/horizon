@@ -76,13 +76,6 @@
     border-radius: 13px; padding: 13px 16px; font-size: 0.9375rem; font-family: var(--font-body);
   }
   .auth-card .field-error { font-size: 0.75rem; color: var(--crit); text-align: left; margin: -4px 0 0; min-height: 1em; }
-  .auth-card .auth-help { color: var(--muted); font-size: 0.8125rem; line-height: 1.45; margin: 10px 0 0; }
-  .auth-card .auth-email-button { width: 100%; background: transparent; color: var(--accent-ink); border: 0; padding: 11px; margin-top: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
-  .auth-card .auth-email-button:hover { text-decoration: underline; }
-  .auth-card .auth-email-button:disabled { opacity: .55; cursor: wait; }
-  .auth-link-entry { margin-top: 8px; text-align: left; }
-  .auth-link-entry summary { color: var(--muted); cursor: pointer; font-size: 0.8125rem; text-align: center; }
-  .auth-link-entry form { margin-top: 12px; }
   .auth-card button[type="submit"] {
     border: none; background: var(--accent); color: #fff;
     font-weight: 600; padding: 13px; border-radius: 11px; cursor: pointer; font-size: 0.90625rem;
@@ -592,21 +585,6 @@
       <p class="field-error" id="auth-error"></p>
       <button type="submit" id="auth-btn">Sign in</button>
     </form>
-    <button type="button" id="auth-email-link" class="auth-email-button">Email me a sign-in link</button>
-    <p id="auth-email-status" class="auth-help" role="status" aria-live="polite"></p>
-    <details id="auth-link-entry" class="auth-link-entry">
-      <summary>Paste a sign-in link here</summary>
-      <form id="auth-link-form">
-        <input id="auth-link" type="password" autocomplete="off" aria-label="Sign-in link from email" placeholder="Paste the link from your email" required />
-        <button type="submit" id="auth-link-btn">Sign in with link</button>
-        <p class="field-error" id="auth-link-error" role="alert"></p>
-      </form>
-    </details>
-    <form id="auth-code-form" hidden>
-      <input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-label="Six-digit sign-in code" placeholder="Six-digit code" required />
-      <button type="submit" id="auth-code-btn">Verify code</button>
-      <p class="field-error" id="auth-code-error" role="alert"></p>
-    </form>
     <p class="auth-note">New here? <a href="?demo=1">Try the demo</a> — no account needed.</p>
   </div>
 </div>
@@ -867,7 +845,7 @@
 <div class="toast" id="toast" role="status"></div>
 <dialog id="task-dialog" class="planner-dialog" aria-labelledby="task-dialog-heading"><form id="task-detail-form"><div class="planner-dialog-head"><h2 id="task-dialog-heading">Task details</h2><button type="button" data-close-dialog aria-label="Close task details">Close</button></div><label>Task<input id="detail-title" maxlength="200" required></label><label>Notes<textarea id="detail-notes" maxlength="2000"></textarea></label><label>Estimate · minutes<input id="detail-estimate" type="number" min="1" max="600"></label><p id="detail-source" class="planner-note"></p><p id="detail-error" role="alert"></p><div class="planner-actions"><button type="submit" class="planner-primary">Save changes</button><button id="detail-complete" type="button">Mark complete</button><button id="detail-move" type="button">Move to tomorrow</button></div></form></dialog>
 <dialog id="capture-dialog" class="planner-dialog" aria-labelledby="capture-dialog-heading"><div class="planner-dialog-head"><h2 id="capture-dialog-heading">Capture a task</h2><button type="button" data-close-dialog>Close</button></div><p class="planner-note">Save a thought to Inbox without leaving your day.</p><form id="capture-form"><label>Task<input id="capture-input" maxlength="200" required autocomplete="off" placeholder="What needs doing?"></label><button type="submit" class="planner-primary">Save to Inbox</button></form></dialog>
-<dialog id="plan-dialog" class="planner-dialog" aria-labelledby="plan-dialog-heading"><div class="planner-dialog-head"><h2 id="plan-dialog-heading">Plan today</h2><button type="button" data-close-dialog>Close</button></div><p class="planner-note">Manual plan · arrange unfinished tasks in list order. Calendar availability is not included.</p><form id="plan-form"><div class="planner-time-inputs"><label>Start<input id="plan-start" type="time" value="09:00" required></label><label>Finish<input id="plan-end" type="time" value="17:00" required></label><label>Buffer · min<input id="plan-buffer" type="number" min="0" max="120" value="15" required></label></div><button type="submit">Preview plan</button></form><div id="plan-preview" aria-live="polite"></div><button id="accept-plan" class="planner-primary" hidden>Accept plan</button><p class="planner-note">Accepted plans are saved in this browser. Your tasks continue to sync with your account.</p></dialog>
+<dialog id="plan-dialog" class="planner-dialog" aria-labelledby="plan-dialog-heading"><div class="planner-dialog-head"><h2 id="plan-dialog-heading">Plan today</h2><button type="button" data-close-dialog>Close</button></div><p class="planner-note">Manual plan · arrange unfinished tasks in list order. Calendar availability is not included.</p><form id="plan-form"><div class="planner-time-inputs"><label>Start<input id="plan-start" type="time" value="09:00" required></label><label>Finish<input id="plan-end" type="time" value="17:00" required></label><label>Buffer · min<input id="plan-buffer" type="number" min="0" max="120" value="15" required></label></div><button type="submit">Preview plan</button></form><div id="plan-preview" aria-live="polite"></div><button id="accept-plan" class="planner-primary" hidden>Accept plan</button><p class="planner-note">Tasks sync when signed in. Inbox drafts, accepted plans, and focus records stay in this browser.</p></dialog>
 <dialog id="focus-dialog" class="planner-dialog" aria-labelledby="focus-dialog-heading"><div class="planner-dialog-head"><h2 id="focus-dialog-heading">Focus</h2><button type="button" data-close-dialog>Close</button></div><h3 id="focus-task-name"></h3><p class="planner-note" id="focus-task-estimate"></p><div id="focus-clock" role="timer" aria-label="Focus session elapsed time">00:00:00</div><p class="planner-note" id="focus-status">Start a session when you begin working. Time is recorded when you save it.</p><div class="planner-actions"><button id="focus-start" class="planner-primary" type="button">Start</button><button id="focus-pause" type="button" hidden>Pause</button><button id="focus-save" type="button" hidden>Save time</button><button id="focus-complete" type="button">Mark complete</button></div></dialog>
 
 <script type="module">
@@ -1048,62 +1026,6 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   btn.disabled = false; btn.textContent = "Sign in";
   if (error) errEl.textContent = error.message;
-});
-
-let pendingOtpEmail = null;
-document.getElementById("auth-email-link").addEventListener("click", async () => {
-  const emailField = document.getElementById("auth-email");
-  const email = emailField.value.trim();
-  const status = document.getElementById("auth-email-status");
-  if (!emailField.checkValidity() || !email) { emailField.reportValidity(); return; }
-  const button = document.getElementById("auth-email-link");
-  pendingOtpEmail = null;
-  document.getElementById("auth-code-form").hidden = true;
-  document.getElementById("auth-code").value = "";
-  button.disabled = true; status.textContent = "Sending sign-in email…";
-  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
-  button.disabled = false;
-  if (error) {
-    status.textContent = error.status === 429 ? "Please wait a minute before trying again." : "Could not send a sign-in email. Check the address and try again.";
-    return;
-  }
-  pendingOtpEmail = email;
-  status.textContent = "Check your email. Open the sign-in link, or enter a six-digit code here if the message includes one.";
-  document.getElementById("auth-link-entry").open = true;
-  document.getElementById("auth-code-form").hidden = false;
-});
-
-document.getElementById("auth-link-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const field = document.getElementById("auth-link");
-  const errorView = document.getElementById("auth-link-error");
-  let url;
-  try { url = new URL(field.value.trim()); }
-  catch { errorView.textContent = "Paste the full sign-in link from the email."; return; }
-  const tokenHash = url.searchParams.get("token_hash") || url.searchParams.get("token");
-  if (url.origin !== SUPABASE_URL || url.pathname !== "/auth/v1/verify" || !["magiclink", "email"].includes(url.searchParams.get("type")) || !tokenHash || tokenHash.length < 16) {
-    errorView.textContent = "That isn't a Horizon sign-in link. Copy the link from the latest email.";
-    return;
-  }
-  field.value = "";
-  const button = document.getElementById("auth-link-btn");
-  button.disabled = true; errorView.textContent = "Verifying link…";
-  const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
-  button.disabled = false;
-  errorView.textContent = error ? "This link expired or was already used. Request a new sign-in email." : "";
-});
-
-document.getElementById("auth-code-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = pendingOtpEmail;
-  const code = document.getElementById("auth-code").value.trim();
-  const errorView = document.getElementById("auth-code-error");
-  if (!email || !/^[0-9]{6}$/.test(code)) return;
-  const button = document.getElementById("auth-code-btn");
-  button.disabled = true; errorView.textContent = "";
-  const { error } = await sb.auth.verifyOtp({ email, token: code, type: "email" });
-  button.disabled = false;
-  if (error) errorView.textContent = "That code didn't work. Check it or request another email.";
 });
 
 document.getElementById("signout").addEventListener("click", async () => {
