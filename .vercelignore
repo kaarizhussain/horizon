@@ -1,5 +1,8 @@
-# Horizon is a single static index.html. Everything else in this repo is
+# Horizon has a static entry point and planner styles/modules. Everything else is
 # source (edge functions, migrations), planning docs, or alternate designs
 # that should NOT be served publicly. Deploy only the app.
 *
 !index.html
+!planner.css
+!planner-model.mjs
+!planner-workspace.mjs

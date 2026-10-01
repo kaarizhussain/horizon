@@ -567,6 +567,7 @@
     .iconbtn.theme .ic { transition: opacity var(--dur-fast) ease; }
   }
 </style>
+<link rel="stylesheet" href="planner.css">
 </head>
 <body>
 
@@ -625,16 +626,18 @@
   <aside class="side">
     <div class="side-brand">
       <div class="side-mark" aria-hidden="true">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 15 L9 9 L13 13 L20 5"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 17h18M6 17a6 6 0 0 1 12 0M12 3v3M4 8l2 2M20 8l-2 2"/></svg>
       </div>
-      <span class="side-word">Horizon</span>
+      <span class="side-word">horizon</span>
     </div>
 
+    <div class="nav-caption">Personal workspace</div>
     <nav class="nav" id="nav">
       <button data-tab="today" class="active" aria-label="Today">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <span>Today</span>
       </button>
+      <button data-tab="inbox" aria-label="Inbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 4-2 12v4h20v-4L20 4H4Z"/><path d="M2 16h6l2 3h4l2-3h6"/></svg><span>Inbox</span><span id="inbox-count"></span></button>
       <button data-tab="goals" aria-label="Goals">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg>
         <span>Goals</span>
@@ -647,9 +650,9 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>
         <span>Insights</span>
       </button>
-      <button data-tab="briefing" aria-label="Briefing">
+      <button data-tab="briefing" aria-label="Routine">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <span>Briefing</span>
+        <span>Routine</span>
       </button>
     </nav>
 
@@ -684,16 +687,24 @@
         <div class="date" id="date-line">—</div>
         <h1 id="greeting-line">Good morning</h1>
       </div>
-      <button class="co-btn" id="co-toggle">
+      <div class="workspace-tools"><button id="capture-open" class="capture-button">＋ Capture <kbd>Ctrl K</kbd></button><button class="co-btn" id="co-toggle">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>
-        Copilot
-      </button>
+        Assistant
+      </button></div>
     </header>
+    <div class="week-strip" id="week-strip" aria-label="This week at a glance; dates are for context"></div>
 
     <div class="content hz-scroll" id="content">
 
       <!-- TODAY -->
       <div class="view" id="view-today">
+        <div class="mobile-workspace-switch" id="workspace-switch" aria-label="Today view"><button type="button" data-pane="tasks" aria-pressed="true">Tasks</button><button type="button" data-pane="timeline" aria-pressed="false">Timeline</button></div>
+        <div class="planner-grid" data-mobile-pane="tasks">
+        <section class="planner-day" id="planner-day-pane">
+        <div class="planner-day-heading"><h2 id="today-label">Today</h2><span id="today-date"></span></div>
+        <div class="planner-summary" id="planned-summary"></div>
+        <div class="day-progress" id="day-progress" role="progressbar" aria-label="Today's task completion" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+        <div class="planner-actions day-toolbar"><button id="plan-day" class="planner-primary">Plan day <span aria-hidden="true">↗</span></button><button id="focus-open">Focus</button></div>
         <section class="hero">
           <div style="flex:1; min-width:0;">
             <div class="eyebrow">Focus right now</div>
@@ -704,20 +715,27 @@
         </section>
 
         <div class="sec-head">
-          <h2>Your day</h2>
-          <span class="count" id="day-count"></span>
+          <h2>Tasks</h2>
+          <span class="count" id="day-count" hidden></span>
         </div>
         <ul class="list" id="day-list" data-hid="day"></ul>
         <form class="add" data-add="day">
           <input type="text" placeholder="Add a task for today…" aria-label="Add to Today" maxlength="200" autocomplete="off" />
           <button type="submit" aria-label="Add">+</button>
         </form>
+        <p class="planner-note" id="plan-state"></p>
 
         <div class="sec-head">
           <h2>Moving toward</h2>
         </div>
         <div class="glance-grid" id="glance"></div>
+        </section>
+        <section class="planner-tomorrow"><div class="planner-day-heading"><h2 id="tomorrow-label">Tomorrow</h2><span id="tomorrow-date"></span></div><p class="planner-note">Tomorrow · unscheduled</p><ul class="list" id="tomorrow-list" data-hid="tomorrow"></ul><form id="tomorrow-add" class="add"><input aria-label="Add to Tomorrow" placeholder="Add a task…" maxlength="200" required><button aria-label="Add tomorrow task">+</button></form></section>
+        <aside class="planner-agenda" id="planner-timeline-pane"><div class="planner-day-heading"><h2>Your timeline</h2><span id="agenda-status">Manual plan</span><button id="timeline-focus" type="button">Focus</button><button id="timeline-plan" type="button">Plan ↗</button></div><p class="planner-note" id="calendar-status">Calendar isn't connected. Task blocks below are Horizon's own plan.</p><div id="short-tasks" class="short-task-list" hidden></div><div class="timeline-scroll" id="timeline-scroll"><div id="agenda-events" class="day-timeline" aria-label="Today's task schedule"></div></div><div class="timeline-legend" aria-label="Task source colors"><span class="personal-key">Personal task</span><span class="planner-key">Planner</span><span class="habit-key">Habit</span></div><div class="planner-budget"><span class="planner-note">Estimated work left</span><div id="remaining-time"></div><p class="planner-note" id="unestimated-note"></p></div></aside>
+        </div>
       </div>
+
+      <div class="view" id="view-inbox" hidden><h2>Inbox</h2><p class="view-sub">Unscheduled capture · saved in this browser until you add it to a day.</p><form id="inbox-add" class="add"><input aria-label="Capture a task" placeholder="Add a task…" maxlength="200" required><button aria-label="Capture task">+</button></form><ul id="inbox-list" class="list"></ul></div>
 
       <!-- GOALS -->
       <div class="view wide" id="view-goals" hidden>
@@ -757,14 +775,14 @@
       <!-- INSIGHTS -->
       <div class="view" id="view-insights" hidden>
         <h2 style="margin:0; font-size:1.5rem;">Insights</h2>
-        <p class="view-sub">Your last 30 days, measured honestly.</p>
+        <p class="view-sub">Completion history and focus time you actually recorded.</p>
         <div id="insights-body"><p class="insights-note">Loading…</p></div>
       </div>
 
       <!-- BRIEFING -->
       <div class="view" id="view-briefing" hidden>
-        <h2 style="margin:0; font-size:1.5rem;">Assistant briefing</h2>
-        <p class="view-sub">What your 7am planner knows about you.</p>
+        <h2 style="margin:0; font-size:1.5rem;">Routine</h2>
+        <p class="view-sub">Standing preferences for your planner. Automatic planning and delivery status have not been verified in this build.</p>
         <div class="brief-card" style="margin-bottom:16px;">
           <p style="margin-bottom:10px;">What should Horizon call you? Leave blank to use the part of your email before the @.</p>
           <div class="dwt-row" style="margin-top:0;">
@@ -825,9 +843,15 @@
 </div>
 
 <div class="toast" id="toast" role="status"></div>
+<dialog id="task-dialog" class="planner-dialog" aria-labelledby="task-dialog-heading"><form id="task-detail-form"><div class="planner-dialog-head"><h2 id="task-dialog-heading">Task details</h2><button type="button" data-close-dialog aria-label="Close task details">Close</button></div><label>Task<input id="detail-title" maxlength="200" required></label><label>Notes<textarea id="detail-notes" maxlength="2000"></textarea></label><label>Estimate · minutes<input id="detail-estimate" type="number" min="1" max="600"></label><p id="detail-source" class="planner-note"></p><p id="detail-error" role="alert"></p><div class="planner-actions"><button type="submit" class="planner-primary">Save changes</button><button id="detail-complete" type="button">Mark complete</button><button id="detail-move" type="button">Move to tomorrow</button></div></form></dialog>
+<dialog id="capture-dialog" class="planner-dialog" aria-labelledby="capture-dialog-heading"><div class="planner-dialog-head"><h2 id="capture-dialog-heading">Capture a task</h2><button type="button" data-close-dialog>Close</button></div><p class="planner-note">Save a thought to Inbox without leaving your day.</p><form id="capture-form"><label>Task<input id="capture-input" maxlength="200" required autocomplete="off" placeholder="What needs doing?"></label><button type="submit" class="planner-primary">Save to Inbox</button></form></dialog>
+<dialog id="plan-dialog" class="planner-dialog" aria-labelledby="plan-dialog-heading"><div class="planner-dialog-head"><h2 id="plan-dialog-heading">Plan today</h2><button type="button" data-close-dialog>Close</button></div><p class="planner-note">Manual plan · arrange unfinished tasks in list order. Calendar availability is not included.</p><form id="plan-form"><div class="planner-time-inputs"><label>Start<input id="plan-start" type="time" value="09:00" required></label><label>Finish<input id="plan-end" type="time" value="17:00" required></label><label>Buffer · min<input id="plan-buffer" type="number" min="0" max="120" value="15" required></label></div><button type="submit">Preview plan</button></form><div id="plan-preview" aria-live="polite"></div><button id="accept-plan" class="planner-primary" hidden>Accept plan</button><p class="planner-note">Tasks sync when signed in. Inbox drafts, accepted plans, and focus records stay in this browser.</p></dialog>
+<dialog id="focus-dialog" class="planner-dialog" aria-labelledby="focus-dialog-heading"><div class="planner-dialog-head"><h2 id="focus-dialog-heading">Focus</h2><button type="button" data-close-dialog>Close</button></div><h3 id="focus-task-name"></h3><p class="planner-note" id="focus-task-estimate"></p><div id="focus-clock" role="timer" aria-label="Focus session elapsed time">00:00:00</div><p class="planner-note" id="focus-status">Start a session when you begin working. Time is recorded when you save it.</p><div class="planner-actions"><button id="focus-start" class="planner-primary" type="button">Start</button><button id="focus-pause" type="button" hidden>Pause</button><button id="focus-save" type="button" hidden>Save time</button><button id="focus-complete" type="button">Mark complete</button></div></dialog>
 
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createWorkspace } from "./planner-workspace.mjs";
+import { partitionBoard } from "./planner-model.mjs";
 
 const SUPABASE_URL = "https://esithnapkqxwpsfvfwgr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ciB1R_0CjkGZfaJ-Ss2huA_Gw7GDxxD";
@@ -843,7 +867,8 @@ const HORIZONS = [
 ];
 const ADD_PLACEHOLDER = { day: "task for today", week: "goal for this week", month: "goal for this month", year: "goal for this year" };
 
-let state = { day: [], week: [], month: [], year: [] };
+let state = { day: [], tomorrow: [], week: [], month: [], year: [] };
+let workspace;
 let habits = [];
 let profile = { streak: 0, last_complete: null, context: "" };
 let justAddedId = null;
@@ -851,6 +876,12 @@ const expandedNotes = new Set();
 let drag = null;
 let booted = false;
 let currentTab = "today";
+let activeAccount = DEMO ? "demo" : null;
+let sessionVersion = 0;
+let loadedBoardDate = null;
+let dayRefresh = null;
+const captureSession = () => ({ version: sessionVersion, board: state });
+const sessionCurrent = scope => scope.version === sessionVersion && (DEMO || !!activeAccount);
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- dates (local timezone) ---------- */
@@ -858,8 +889,38 @@ function localYMD(d) {
   d = d || new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
-function periodFor(h) {
-  const d = new Date();
+function tomorrowPeriod(at = new Date()) { const d = new Date(at); d.setDate(d.getDate() + 1); return localYMD(d); }
+function boardPeriods() {
+  const at = new Date();
+  return { day: periodFor("day", at), tomorrow: tomorrowPeriod(at), week: periodFor("week", at), month: periodFor("month", at), year: periodFor("year", at) };
+}
+async function ensureBoardDay() {
+  const scope = captureSession();
+  if (!sessionCurrent(scope)) return false;
+  if (loadedBoardDate === periodFor("day")) return true;
+  if (!dayRefresh) {
+    const pending = (async () => {
+      if (DEMO) {
+        const periods = boardPeriods();
+        state = partitionBoard(Object.values(state).flat(), periods, true);
+        loadedBoardDate = periods.day;
+      } else if (!await loadBoard(scope)) return false;
+      if (!sessionCurrent(scope)) return false;
+      renderChrome(); renderBoard();
+      return loadedBoardDate === periodFor("day");
+    })();
+    dayRefresh = pending;
+    pending.finally(() => { if (dayRefresh === pending) dayRefresh = null; }).catch(() => {});
+  }
+  return await dayRefresh && sessionCurrent(scope);
+}
+function checkDayOnReturn() {
+  if (booted && loadedBoardDate && !document.hidden) ensureBoardDay().catch(error => toast("Couldn't refresh the day: " + error.message));
+}
+window.addEventListener("focus", checkDayOnReturn);
+document.addEventListener("visibilitychange", checkDayOnReturn);
+setInterval(checkDayOnReturn, 30000);
+function periodFor(h, d = new Date()) {
   if (h === "day") return localYMD(d);
   if (h === "week") {
     const dow = d.getDay();
@@ -905,18 +966,40 @@ if (DEMO) {
   }
 } else {
   sb.auth.onAuthStateChange((_event, session) => {
-    if (session) { authView.hidden = true; routeAfterAuth(session); }
-    else { appView.hidden = true; onboardingView.hidden = true; authView.hidden = false; }
+    const nextAccount = session?.user?.id || null;
+    if (nextAccount !== activeAccount) {
+      activeAccount = nextAccount; sessionVersion++;
+      workspace?.destroy(); workspace = undefined; booted = false;
+      loadedBoardDate = null; dayRefresh = null;
+      state = { day: [], tomorrow: [], week: [], month: [], year: [] };
+      profile = { streak: 0, last_complete: null, context: "" }; habits = []; sessionEmail = "";
+      document.querySelectorAll("dialog[open]").forEach(dialog => dialog.close());
+      document.getElementById("dock-msgs").replaceChildren();
+      document.getElementById("insights-body").replaceChildren(); insightsLoaded = false;
+      [appView, onboardingView].forEach(view => view.querySelectorAll('input,textarea').forEach(input => { input.value = ""; }));
+      appView.querySelectorAll('button:disabled').forEach(button => { button.disabled = false; });
+      document.getElementById("detail-title").value = ""; document.getElementById("detail-notes").value = "";
+      ["day-list", "tomorrow-list", "goal-sections", "habit-list", "glance", "inbox-list", "agenda-events", "plan-preview"].forEach(id => document.getElementById(id).replaceChildren());
+      ["user-name", "user-email", "avatar", "focus-task-name"].forEach(id => { document.getElementById(id).textContent = ""; });
+      document.getElementById("streak-n").textContent = "0";
+      if (drag) endDrag(false);
+      appView.hidden = true; onboardingView.hidden = true;
+    }
+    authView.hidden = !!session;
+    // Leave the auth callback before making another Supabase request.
+    if (session) setTimeout(() => { if (activeAccount === nextAccount) routeAfterAuth(session); }, 0);
   });
 }
 
 let sessionEmail = "";
 async function routeAfterAuth(session) {
+  const scope = captureSession();
   sessionEmail = session?.user?.email || "";
   const skipped = localStorage.getItem("horizon.onboarding.done") === "1";
   let hasGoals = true;
   if (!skipped) {
     const { count } = await sb.from("goals").select("id", { count: "exact", head: true });
+    if (!sessionCurrent(scope)) return;
     hasGoals = (count ?? 0) > 0;
   }
   if (!skipped && !hasGoals) {
@@ -948,35 +1031,40 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
 document.getElementById("signout").addEventListener("click", async () => {
   if (DEMO) { location.href = location.pathname; return; }
   await sb.auth.signOut();
-  booted = false;
 });
 
 /* ---------- data ---------- */
-async function loadBoard() {
-  const today = periodFor("day");
+async function loadBoard(scope = captureSession()) {
+  if (!sessionCurrent(scope)) return false;
+  const periods = boardPeriods(), today = periods.day;
   const { error: syncErr } = await sb.rpc("sync_todays_habits", { p_today: today });
+  if (!sessionCurrent(scope)) return false;
   if (syncErr) toast("Couldn't sync habits: " + syncErr.message);
   const { error: rollErr } = await sb.from("goals")
     .update({ period: today })
     .eq("horizon", "day").eq("done", false).lt("period", today);
+  if (!sessionCurrent(scope)) return false;
   if (rollErr) toast("Couldn't roll tasks forward: " + rollErr.message);
 
   const [g, p] = await Promise.all([
     sb.from("goals").select("*")
-      .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.week,period.eq.${periodFor("week")}),and(horizon.eq.month,period.eq.${periodFor("month")}),and(horizon.eq.year,period.eq.${periodFor("year")})`)
+      .or(`and(horizon.eq.day,period.eq.${today}),and(horizon.eq.day,period.eq.${periods.tomorrow}),and(horizon.eq.week,period.eq.${periods.week}),and(horizon.eq.month,period.eq.${periods.month}),and(horizon.eq.year,period.eq.${periods.year})`)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
     sb.from("profiles").select("*").maybeSingle()
   ]);
 
-  if (g.error) { toast("Couldn't load your board: " + g.error.message); return; }
-  state = { day: [], week: [], month: [], year: [] };
-  for (const row of g.data) state[row.horizon]?.push(row);
+  if (!sessionCurrent(scope)) return false;
+  if (today !== periodFor("day")) return loadBoard(scope);
+  if (g.error) { toast("Couldn't load your board: " + g.error.message); return false; }
+  state = partitionBoard(g.data, periods);
+  loadedBoardDate = today;
 
   if (p.error) { toast("Couldn't load profile: " + p.error.message); }
   else if (p.data) profile = p.data;
   else {
     const ins = await sb.from("profiles").insert({}).select().single();
+    if (!sessionCurrent(scope)) return false;
     if (!ins.error) profile = ins.data;
   }
   if (profile.last_complete && daysBetween(profile.last_complete, today) >= 2 && profile.streak !== 0) {
@@ -986,20 +1074,26 @@ async function loadBoard() {
   document.getElementById("context-text").value = profile.context || "";
   document.getElementById("dwt-input").value = profile.deep_work_target_hours ?? "";
   document.getElementById("name-input").value = profile.display_name || "";
+  return true;
 }
 
 async function addGoal(hid, text) {
+  const account = captureSession();
+  if (!await ensureBoardDay() || !sessionCurrent(account)) return false;
+  const scope = captureSession();
   text = text.trim();
   if (!text) return;
   const position = state[hid].length ? Math.max(...state[hid].map(t => t.position || 0)) + 1 : 0;
-  let data = { horizon: hid, period: periodFor(hid), text, done: false, done_at: null, notes: "", position };
+  let data = { horizon: hid === "tomorrow" ? "day" : hid, period: hid === "tomorrow" ? tomorrowPeriod() : periodFor(hid), text, done: false, done_at: null, notes: "", position };
   if (DEMO) {
     data.id = "demo-" + Math.random().toString(36).slice(2, 9);
   } else {
     const { data: row, error } = await sb.from("goals").insert(data).select().single();
-    if (error) { toast("Couldn't add: " + error.message); return; }
+    if (!sessionCurrent(scope)) return false;
+    if (error) { toast("Couldn't add: " + error.message); return false; }
     data = row;
   }
+  if (loadedBoardDate !== periodFor("day") || scope.board !== state) { if (!DEMO) await loadBoard(scope); else await ensureBoardDay(); if (sessionCurrent(scope)) renderBoard(); return sessionCurrent(scope); }
   state[hid].push(data);
   justAddedId = data.id;
   renderBoard();
@@ -1008,6 +1102,45 @@ async function addGoal(hid, text) {
     const inp = document.querySelector('form[data-add="' + hid + '"] input');
     if (inp) inp.focus({ preventScroll: true });
   }
+  return true;
+}
+
+async function moveTask(hid, id, target, changes = {}) {
+  const account = captureSession();
+  if (!await ensureBoardDay() || !sessionCurrent(account)) return false;
+  const scope = captureSession();
+  if (!["day", "tomorrow"].includes(hid) || !["day", "tomorrow"].includes(target) || hid === target) return false;
+  const task = state[hid].find(t => t.id === id);
+  if (!task || task.done) return false;
+  if (task.source === "habit") { toast("Manage recurring dates in Habits instead of moving a habit instance."); return false; }
+  const period = target === "tomorrow" ? tomorrowPeriod() : periodFor("day");
+  const position = Math.max(-1, ...state[target].map(t => t.position || 0)) + 1;
+  if (!DEMO) {
+    const { data, error } = await sb.from("goals").update({ ...changes, period, position }).eq("id", id).eq("done", false).select("id").single();
+    if (!sessionCurrent(scope)) return false;
+    if (error || !data) { toast("Couldn't move task: " + (error?.message || "No saved task returned")); return false; }
+  }
+  if (loadedBoardDate !== periodFor("day") || scope.board !== state) { if (!DEMO) await loadBoard(scope); else await ensureBoardDay(); if (sessionCurrent(scope)) renderBoard(); return sessionCurrent(scope); }
+  state[hid] = state[hid].filter(t => t.id !== id);
+  state[target].push({ ...task, ...changes, period, position });
+  renderBoard();
+  return true;
+}
+
+async function editTask(hid, id, changes) {
+  const account = captureSession();
+  if (!await ensureBoardDay() || !sessionCurrent(account)) return false;
+  const scope = captureSession();
+  const task = state[hid].find(t => t.id === id);
+  if (!task) throw new Error("This task is no longer on the board.");
+  if (!DEMO) {
+    const { data, error } = await sb.from("goals").update(changes).eq("id", id).select("id").single();
+    if (!sessionCurrent(scope)) return false;
+    if (error || !data) throw new Error(error?.message || "The task could not be saved.");
+  }
+  if (loadedBoardDate !== periodFor("day") || scope.board !== state) { if (!DEMO) await loadBoard(scope); else await ensureBoardDay(); if (sessionCurrent(scope)) renderBoard(); return sessionCurrent(scope); }
+  Object.assign(task, changes); renderBoard();
+  return true;
 }
 
 // In-place toggle so the check/strikethrough transitions actually play.
@@ -1023,19 +1156,29 @@ function applyToggleUI(hid, id) {
 }
 
 async function toggleGoal(hid, id) {
+  const account = captureSession();
+  if (!await ensureBoardDay() || !sessionCurrent(account)) return false;
+  const scope = captureSession();
   const t = state[hid].find(x => x.id === id);
   if (!t) return;
+  const previous = { done: t.done, done_at: t.done_at };
   t.done = !t.done;
   t.done_at = t.done ? new Date().toISOString() : null;
   applyToggleUI(hid, id); speak(afterAction(hid, t));
   if (!DEMO) {
-    const { error } = await sb.from("goals").update({ done: t.done, done_at: t.done_at }).eq("id", id);
-    if (error) { t.done = !t.done; applyToggleUI(hid, id); toast("Couldn't save: " + error.message); return; }
+    const { data, error } = await sb.from("goals").update({ done: t.done, done_at: t.done_at }).eq("id", id).select("id").single();
+    if (!sessionCurrent(scope)) return false;
+    if (scope.board !== state || loadedBoardDate !== periodFor("day")) { await loadBoard(scope); if (sessionCurrent(scope)) renderBoard(); return !error; }
+    if (error || !data) { Object.assign(t, previous); applyToggleUI(hid, id); toast("Couldn't save: " + (error?.message || "No saved task returned")); return false; }
   }
   if (hid === "day") await maybeAdvanceStreak();
+  return sessionCurrent(scope);
 }
 
 async function removeGoal(hid, id) {
+  const account = captureSession();
+  if (!await ensureBoardDay() || !sessionCurrent(account)) return;
+  const scope = captureSession();
   const prev = state[hid];
   state[hid] = prev.filter(x => x.id !== id);
   const li = document.querySelector('.task[data-id="' + id + '"]');
@@ -1049,9 +1192,11 @@ async function removeGoal(hid, id) {
       { duration: 200, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" });
     await Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 300))]);
   }
+  if (!sessionCurrent(scope) || scope.board !== state) return;
   renderBoard();
   if (!DEMO) {
     const { error } = await sb.from("goals").delete().eq("id", id);
+    if (!sessionCurrent(scope) || scope.board !== state) return;
     if (error) { state[hid] = prev; renderBoard(); toast("Couldn't delete: " + error.message); }
   }
 }
@@ -1071,8 +1216,10 @@ async function saveNotes(hid, id, val) {
 }
 
 async function persistPositions(hid) {
+  const scope = captureSession();
   if (DEMO) return;
   const results = await Promise.all(state[hid].map((t, i) => sb.from("goals").update({ position: i }).eq("id", t.id)));
+  if (!sessionCurrent(scope) || scope.board !== state) return;
   const bad = results.find(r => r.error);
   if (bad) toast("Couldn't save order: " + bad.error.message);
 }
@@ -1087,7 +1234,9 @@ async function saveEstimate(hid, id, minutes) {
 
 /* ---------- habits ---------- */
 async function loadHabits() {
+  const scope = captureSession();
   const { data, error } = await sb.from("habits").select("*").order("created_at", { ascending: true });
+  if (!sessionCurrent(scope)) return;
   if (error) { toast("Couldn't load habits: " + error.message); return; }
   habits = data ?? [];
 }
@@ -1124,6 +1273,7 @@ function renderHabits() {
 }
 
 async function addHabit(text, freq, days) {
+  const scope = captureSession();
   text = text.trim();
   if (!text) return;
   const row = { text, freq, days: freq === "custom" ? days : [], active: true, streak: 0, best_streak: 0 };
@@ -1131,6 +1281,7 @@ async function addHabit(text, freq, days) {
     habits.push(Object.assign({ id: "demo-h-" + Math.random().toString(36).slice(2, 8), created_at: new Date().toISOString() }, row));
   } else {
     const { data, error } = await sb.from("habits").insert(row).select().single();
+    if (!sessionCurrent(scope)) return;
     if (error) { toast("Couldn't add habit: " + error.message); return; }
     habits.push(data);
   }
@@ -1138,21 +1289,25 @@ async function addHabit(text, freq, days) {
 }
 
 async function toggleHabitActive(id) {
+  const scope = captureSession();
   const h = habits.find(x => x.id === id);
   if (!h) return;
   h.active = !h.active;
   renderHabits();
   if (DEMO) return;
   const { error } = await sb.from("habits").update({ active: h.active }).eq("id", id);
+  if (!sessionCurrent(scope)) return;
   if (error) { h.active = !h.active; renderHabits(); toast("Couldn't update habit: " + error.message); }
 }
 
 async function deleteHabit(id) {
+  const scope = captureSession();
   const prev = habits;
   habits = habits.filter(h => h.id !== id);
   renderHabits();
   if (DEMO) return;
   const { error } = await sb.from("habits").delete().eq("id", id);
+  if (!sessionCurrent(scope)) return;
   if (error) { habits = prev; renderHabits(); toast("Couldn't delete habit: " + error.message); }
 }
 
@@ -1212,6 +1367,7 @@ function sparkleStreak() {
 }
 
 async function maybeAdvanceStreak() {
+  const scope = captureSession();
   const today = periodFor("day");
   const day = state.day;
   const allDone = day.length > 0 && day.every(x => x.done);
@@ -1224,9 +1380,10 @@ async function maybeAdvanceStreak() {
     const { error } = await sb.from("profiles")
       .update({ streak: profile.streak, last_complete: today })
       .eq("user_id", profile.user_id);
+    if (!sessionCurrent(scope)) return;
     if (error) toast("Couldn't save streak: " + error.message);
   }
-  speak("<strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Your 7am plan tomorrow will know it.");
+  speak("<strong>Today is clear.</strong> Streak is now <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. Add tomorrow's tasks when you are ready.");
 }
 
 /* ---------- profile: display name ---------- */
@@ -1303,10 +1460,11 @@ function taskEl(hid, task) {
   const open = expandedNotes.has(task.id);
   li.className = "task" + (task.done ? " done" : "") + (task.id === justAddedId ? " enter" : "") + (open ? " notes-open" : "");
   li.dataset.id = task.id;
+  li.dataset.source = task.source || "personal";
   const hasNotes = !!(task.notes && task.notes.trim());
   li.innerHTML =
     '<div class="task-row">' +
-      '<button class="drag-handle" aria-label="Drag to reorder" title="Drag to reorder" tabindex="0">⠿</button>' +
+      '<button class="drag-handle" aria-label="Reorder task: use Arrow Up or Arrow Down" aria-keyshortcuts="ArrowUp ArrowDown" title="Drag or use Arrow Up / Arrow Down" tabindex="0">⠿</button>' +
       '<button class="check" aria-label="' + (task.done ? "Mark not done" : "Mark done") + '" aria-pressed="' + task.done + '">' +
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg>' +
       '</button>' +
@@ -1318,7 +1476,11 @@ function taskEl(hid, task) {
       '<textarea placeholder="Add a note…" maxlength="2000"></textarea>' +
       '<div class="est-row"><label>Estimate</label><input type="number" min="1" max="600" placeholder="min" class="est-input" aria-label="Estimate in minutes" /></div>' +
     '</div></div>';
-  li.querySelector(".task-txt").textContent = task.text;
+  const titleButton = document.createElement("button");
+  titleButton.type = "button"; titleButton.className = "task-title-button"; titleButton.textContent = task.text;
+  titleButton.setAttribute("aria-label", "Edit " + task.text);
+  titleButton.addEventListener("click", () => workspace.openTask(hid, task.id));
+  li.querySelector(".task-txt").appendChild(titleButton);
 
   const sub = li.querySelector(".task-sub");
   if (task.source === "assistant") {
@@ -1331,6 +1493,20 @@ function taskEl(hid, task) {
   }
 
   li.querySelector(".check").addEventListener("click", () => toggleGoal(hid, task.id));
+  li.querySelector(".drag-handle").addEventListener("keydown", async event => {
+    if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    const account = captureSession();
+    if (!await ensureBoardDay() || !sessionCurrent(account)) return;
+    const index = state[hid].findIndex(row => row.id === task.id);
+    const next = index + (event.key === "ArrowUp" ? -1 : 1);
+    if (index < 0 || next < 0 || next >= state[hid].length) return;
+    [state[hid][index], state[hid][next]] = [state[hid][next], state[hid][index]];
+    state[hid].forEach((row, position) => { row.position = position; });
+    persistPositions(hid); renderBoard();
+    Array.from(document.querySelectorAll('.task')).find(row => row.dataset.id === task.id)?.querySelector('.drag-handle').focus();
+    toast("Task moved " + (event.key === "ArrowUp" ? "up" : "down") + ".");
+  });
   li.querySelector(".del").addEventListener("click", () => removeGoal(hid, task.id));
 
   const ta = li.querySelector("textarea");
@@ -1387,7 +1563,7 @@ function updateMeta() {
     if (next.estimate_min) meta.push(next.estimate_min + " min");
     meta.push(d.left + " of " + d.total + " left today");
   }
-  document.getElementById("focus-meta").textContent = next ? meta.join(" · ") : (d.total ? "Nothing left on the board. Rest well." : "Your 7am plan works from this board.");
+  document.getElementById("focus-meta").textContent = next ? meta.join(" · ") : (d.total ? "Nothing left on the board. Rest well." : "Add tasks to start planning your day.");
   document.getElementById("focus-done").style.visibility = next ? "visible" : "hidden";
 
   ["week", "month", "year"].forEach(k => {
@@ -1404,6 +1580,7 @@ function updateMeta() {
       sec.querySelector(".bar-fill").style.transform = "scaleX(" + (s.pct / 100) + ")";
     }
   });
+  workspace?.render();
 }
 
 function renderBoard() {
@@ -1412,6 +1589,11 @@ function renderBoard() {
   dayUl.innerHTML = "";
   if (!state.day.length) dayUl.innerHTML = emptyLi("day");
   else state.day.forEach(t => dayUl.appendChild(taskEl("day", t)));
+  const tomorrowUl = document.getElementById("tomorrow-list");
+  tomorrowUl.replaceChildren();
+  if (!(state.tomorrow || []).length) {
+    const empty = document.createElement("li"); empty.className = "planner-note"; empty.textContent = "No tasks yet"; tomorrowUl.appendChild(empty);
+  } else state.tomorrow.forEach(t => tomorrowUl.appendChild(taskEl("tomorrow", t)));
 
   // Moving-toward glance
   const glance = document.getElementById("glance");
@@ -1469,7 +1651,7 @@ function renderChrome() {
     d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const email = DEMO ? "demo@horizon.app" : sessionEmail;
   const nice = displayName();
-  document.getElementById("greeting-line").textContent = greeting() + ", " + nice;
+  document.getElementById("greeting-line").textContent = { today: "Today", inbox: "Inbox", goals: "Goals", habits: "Habits", insights: "Insights", briefing: "Routine" }[currentTab];
   document.getElementById("user-name").textContent = nice;
   document.getElementById("user-email").textContent = email;
   document.getElementById("avatar").textContent = nice.slice(0, 2).toUpperCase();
@@ -1477,13 +1659,17 @@ function renderChrome() {
 }
 
 /* ---------- add + empty CTA (delegated) ---------- */
-document.getElementById("content").addEventListener("submit", (e) => {
+document.getElementById("content").addEventListener("submit", async (e) => {
   if (e.target.matches("form[data-add]")) {
+    const scope = captureSession();
     e.preventDefault();
     const input = e.target.querySelector("input");
-    addGoal(e.target.getAttribute("data-add"), input.value);
-    input.value = "";
-    input.focus();
+    const button = e.target.querySelector("button"); button.disabled = true;
+    try {
+      const saved = await addGoal(e.target.getAttribute("data-add"), input.value);
+      if (sessionCurrent(scope) && saved) input.value = "";
+    } catch (error) { if (sessionCurrent(scope)) toast("Couldn't add task: " + error.message); }
+    finally { if (sessionCurrent(scope)) { button.disabled = false; if (input.isConnected) input.focus(); } }
   }
 });
 document.getElementById("content").addEventListener("click", (e) => {
@@ -1513,6 +1699,7 @@ content.addEventListener("pointerdown", (e) => {
   if (drag) return;
   const handle = e.target.closest(".drag-handle");
   if (!handle) return;
+  if (loadedBoardDate !== periodFor("day")) { ensureBoardDay().catch(error => toast(error.message)); return; }
   const li = handle.closest(".task");
   const ul = li.parentElement;
   const hid = ul.dataset.hid;
@@ -1525,7 +1712,7 @@ content.addEventListener("pointerdown", (e) => {
   const originalIndex = {};
   order.forEach((id, i) => { originalIndex[id] = i; });
 
-  drag = { hid, ul, li, order, originalIndex, itemH, pointerId: e.pointerId, startY: e.clientY, samples: [{ t: e.timeStamp, y: e.clientY }] };
+  drag = { scope: captureSession(), hid, ul, li, order, originalIndex, itemH, pointerId: e.pointerId, startY: e.clientY, samples: [{ t: e.timeStamp, y: e.clientY }] };
   items.forEach(el => { if (el !== li) el.classList.add("drag-settling"); });
   li.classList.add("dragging");
   li.style.touchAction = "none";
@@ -1570,6 +1757,7 @@ function onDragKeydown(e) {
 
 function endDrag(commit) {
   if (!drag) return;
+  commit = commit && sessionCurrent(drag.scope) && drag.scope.board === state && loadedBoardDate === periodFor("day");
   const { hid, li, ul, order } = drag;
   window.removeEventListener("keydown", onDragKeydown);
   document.body.style.userSelect = "";
@@ -1600,10 +1788,11 @@ function endDrag(commit) {
   };
 
   if (commit) {
+    const scope = drag.scope;
     state[hid].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
     state[hid].forEach((t, i) => { t.position = i; });
     persistPositions(hid);
-    setTimeout(() => { cleanup(); renderBoard(); }, settleDur);
+    setTimeout(() => { cleanup(); if (sessionCurrent(scope) && scope.board === state) renderBoard(); }, settleDur);
   } else {
     setTimeout(cleanup, settleDur);
   }
@@ -1666,14 +1855,17 @@ function bubblePlaceholder() {
 // answers — the chips are already correct and instant, no reason to add
 // latency/cost there. Falls back to the local answer if the call fails.
 async function askCopilot(question) {
+  const scope = captureSession();
   if (DEMO) { speak(freeText(question)); return; }
   const placeholder = bubblePlaceholder();
   try {
     const { data, error } = await sb.functions.invoke("copilot", { body: { question } });
+    if (!sessionCurrent(scope)) return;
     if (error) throw error;
     if (!data?.ok) throw new Error(data?.error || "unknown error");
     placeholder.innerHTML = formatAiAnswer(data.answer);
   } catch (e) {
+    if (!sessionCurrent(scope)) return;
     placeholder.innerHTML = "Couldn't reach the AI copilot just now — " + freeText(question);
   }
   dockMsgs.scrollTop = dockMsgs.scrollHeight;
@@ -1683,7 +1875,7 @@ async function askCopilot(question) {
   }
 }
 
-const HNAME = { day: '<span class="h-day">Today</span>', week: '<span class="h-week">This Week</span>', month: '<span class="h-month">This Month</span>', year: '<span class="h-year">This Year</span>' };
+const HNAME = { day: '<span class="h-day">Today</span>', tomorrow: '<span class="h-day">Tomorrow</span>', week: '<span class="h-week">This Week</span>', month: '<span class="h-month">This Month</span>', year: '<span class="h-year">This Year</span>' };
 
 function greeting() {
   const h = new Date().getHours();
@@ -1708,7 +1900,7 @@ function afterAction(hid, task) {
 function briefingMsg() {
   const d = stat("day"), w = stat("week"), m = stat("month"), y = stat("year");
   const parts = [greeting() + ". "];
-  if (d.total === 0) parts.push("Your " + HNAME.day + " board is empty — set 1–3 tasks so tomorrow's 7am plan has something to work with.");
+  if (d.total === 0) parts.push("Your " + HNAME.day + " board is empty — add 1–3 tasks and estimates, then use Plan day.");
   else if (d.left === 0) parts.push("<strong>Today is already clear</strong> — all " + d.total + " done. Streak: <strong>" + profile.streak + "</strong>.");
   else {
     parts.push("You've got <strong>" + d.left + "</strong> of " + d.total + " left in " + HNAME.day + ". ");
@@ -1777,11 +1969,11 @@ function freeText(q) {
   if (/(year|yearly|annual)/.test(q)) { const y = stat("year"); return y.total ? HNAME.year + ": <strong>" + y.pct + "%</strong>, " + y.left + " left. Long game — keep chipping." : "No " + HNAME.year + " goals set yet."; }
   if (/(today|day|daily)/.test(q)) { const dd = stat("day"); return HNAME.day + ": " + (dd.total ? dd.done + "/" + dd.total + " done, " + dd.left + " left." : "empty — add a task."); }
   if (/(streak|chain|fire)/.test(q)) return "Your streak is <strong>" + profile.streak + " day" + (profile.streak === 1 ? "" : "s") + "</strong>. It grows each day you clear <em>every</em> task in " + HNAME.day + ".";
-  if (/(text|sms|discord|itinerary|7am|morning)/.test(q)) return "Every morning at 7 your assistant reads this board and your briefing, plans your day, and sends the itinerary. Keep the Briefing page current for better plans.";
+  if (/(text|sms|discord|itinerary|7am|morning)/.test(q)) return "Scheduled delivery is not verified here. Use <strong>Plan day</strong> for a manual draft, and keep your Routine current for future planning.";
   if (/(hi|hey|hello|yo|sup)\b/.test(q)) return greeting() + "! Ask me what to focus on, how you're doing, or say “motivate me.”";
-  if (/(help|what can you|command)/.test(q)) return "I read your board and can: pick your <strong>focus</strong>, report <strong>progress</strong>, <strong>plan</strong> your day, or give you a <strong>pep talk</strong>. The smarter planning happens in your 7am itinerary.";
+  if (/(help|what can you|command)/.test(q)) return "I read your board and can: pick your <strong>focus</strong>, report <strong>progress</strong>, suggest priorities, or give you a <strong>pep talk</strong>. Use <strong>Plan day</strong> to preview and accept a manual schedule.";
   if (/(thank|thx|cheers)/.test(q)) return "Anytime. Now go check one off. ✅";
-  return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips below. For deeper planning, your 7am itinerary has you covered.";
+  return "I can talk <span class='h-day'>focus</span>, <span class='h-week'>this week</span>, <span class='h-month'>progress</span>, planning, or motivation — try the chips below. Use <strong>Plan day</strong> to draft your schedule.";
 }
 
 function reopenOnboarding() {
@@ -1809,9 +2001,11 @@ document.getElementById("ask-form").addEventListener("submit", (e) => {
 });
 
 /* ---------- tabs ---------- */
-const VIEWS = { today: "view-today", goals: "view-goals", habits: "view-habits", insights: "view-insights", briefing: "view-briefing" };
+const VIEWS = { today: "view-today", inbox: "view-inbox", goals: "view-goals", habits: "view-habits", insights: "view-insights", briefing: "view-briefing" };
 function setTab(tab) {
   currentTab = tab;
+  document.getElementById("greeting-line").textContent = { today: "Today", inbox: "Inbox", goals: "Goals", habits: "Habits", insights: "Insights", briefing: "Routine" }[tab];
+  document.getElementById("week-strip").hidden = tab !== "today";
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
   Object.entries(VIEWS).forEach(([k, id]) => {
     const el = document.getElementById(id);
@@ -1984,7 +2178,8 @@ function obShowDeeperBrief(key) {
   };
 }
 async function obAnswerGoal(horizonKey, text) {
-  await addGoal(horizonKey, text);
+  const scope = captureSession();
+  if (!await addGoal(horizonKey, text) || !sessionCurrent(scope) || !ob) return;
   ob.added++;
   obAdvanceGoal();
 }
@@ -2012,6 +2207,7 @@ document.getElementById("ob-skip-step").addEventListener("click", () => {
 document.getElementById("ob-skip-all").addEventListener("click", () => obFinish());
 
 async function obFinish() {
+  const scope = captureSession();
   const b = ob.brief;
   const lines = [];
   if (b.hours) lines.push("Work hours: " + b.hours + ".");
@@ -2025,6 +2221,7 @@ async function obFinish() {
   onboardingView.hidden = true;
   appView.hidden = false;
   await boot();
+  if (!sessionCurrent(scope)) return;
 
   if (briefText) {
     const existing = (profile.context || "").trim();
@@ -2033,6 +2230,7 @@ async function obFinish() {
     document.getElementById("context-text").value = profile.context;
     if (!DEMO && profile.user_id) {
       const { error } = await sb.from("profiles").update({ context: profile.context }).eq("user_id", profile.user_id);
+      if (!sessionCurrent(scope)) return;
       if (error) toast("Couldn't save briefing: " + error.message);
     }
   }
@@ -2046,7 +2244,11 @@ async function obFinish() {
 let insightsLoaded = false;
 
 async function loadInsights() {
+  const scope = captureSession();
   const body = document.getElementById("insights-body");
+  document.querySelector('#view-insights .view-sub').textContent = DEMO
+    ? 'Sample completion history and focus time you recorded in this demo.'
+    : 'Completion history and focus time you actually recorded.';
   let rows;
   if (DEMO) {
     rows = demoInsightRows();
@@ -2055,13 +2257,14 @@ async function loadInsights() {
     const { data, error } = await sb.from("goals")
       .select("horizon, done, done_at, created_at, estimate_min")
       .gte("created_at", since);
+    if (!sessionCurrent(scope)) return;
     if (error) { body.innerHTML = '<p class="insights-note">Couldn&#39;t load insights: ' + esc(error.message) + '</p>'; return; }
     rows = data ?? [];
   }
-  renderInsights(rows);
+  renderInsights(rows, workspace?.focusRecords() || []);
 }
 
-function renderInsights(rows) {
+function renderInsights(rows, recorded) {
   const doneRows = rows.filter(r => r.done && r.done_at);
   const byDay = [0, 0, 0, 0, 0, 0, 0];
   doneRows.forEach(r => { byDay[(new Date(r.done_at).getDay() + 6) % 7]++; });
@@ -2089,22 +2292,16 @@ function renderInsights(rows) {
     ? "Early days — patterns get real after a couple of weeks of data."
     : "Terracotta = your best day.") + '</p></div>';
 
-  const estRows = doneRows.filter(r => r.estimate_min && r.done_at && r.created_at);
-  if (estRows.length >= 3) {
-    const ratios = estRows.map(r => ((new Date(r.done_at) - new Date(r.created_at)) / 60000) / r.estimate_min)
-      .filter(r => r > 0 && isFinite(r));
-    if (ratios.length >= 3) {
-      const avg = ratios.reduce((a, b) => a + b, 0) / ratios.length;
-      const verdict = avg > 1.15
-        ? "You tend to underestimate — plan roughly " + Math.round((avg - 1) * 100) + "% more time than your gut says."
-        : avg < 0.85
-        ? "You tend to overestimate — you usually finish faster than planned."
-        : "Your estimates are pretty accurate.";
-      html += '<div class="panel-card"><div class="hd"><span class="t">Estimate accuracy</span><span class="s">actual vs. estimate</span></div>'
-        + '<div class="val serif" style="font-size:2.125rem;">' + avg.toFixed(1) + '×</div>'
-        + '<p class="insights-note">' + verdict + '</p></div>';
-    }
+  const ratios = recorded.map(sample => (sample.ms / 60000) / sample.estimateMin).filter(ratio => ratio > 0 && Number.isFinite(ratio));
+  html += '<div class="panel-card"><div class="hd"><span class="t">Recorded focus vs. estimate</span><span class="s">saved in this browser</span></div>';
+  if (ratios.length >= 3) {
+    const avg = ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length;
+    html += '<div class="val" style="font-size:2.125rem;">' + avg.toFixed(1) + '×</div>'
+      + '<p class="insights-note">Across ' + ratios.length + ' tasks with saved focus time and estimates. This covers recorded sessions, not untracked work.</p>';
+  } else {
+    html += '<p class="insights-note">' + ratios.length + ' task' + (ratios.length === 1 ? '' : 's') + ' with recorded time and an estimate. Save focus time for 3 tasks to see a comparison. No duration is inferred from creation or completion dates.</p>';
   }
+  html += '</div>';
   document.getElementById("insights-body").innerHTML = html;
 }
 
@@ -2155,27 +2352,29 @@ function demoData() {
     done_at: done ? new Date().toISOString() : null, notes: notes || "", position: 0, created_at: new Date().toISOString()
   });
   const day = [
-    mk("day", periodFor("day"), "Reply to the client proposal thread", true, ""),
-    Object.assign(mk("day", periodFor("day"), "30-minute run before it gets hot", false, "Loop around the reservoir — aim for an easy pace."), { estimate_min: 30 }),
-    Object.assign(mk("day", periodFor("day"), "Draft the Q3 goals doc", false, ""), { source: "assistant" }),
+    Object.assign(mk("day", periodFor("day"), "Tailor the resume for a product role", false, "Adapt the summary and two project examples to the role."), { estimate_min: 45 }),
+    Object.assign(mk("day", periodFor("day"), "Send two thoughtful applications", false, "Choose the two strongest matches from your shortlist."), { source: "assistant", estimate_min: 30 }),
+    Object.assign(mk("day", periodFor("day"), "Polish the case study introduction", false, "Start with the problem, your role, and the result."), { estimate_min: 60 }),
+    Object.assign(mk("day", periodFor("day"), "Review saved product roles", true, "Shortlist roles that fit your interests and experience."), { estimate_min: 15 }),
     Object.assign(mk("day", periodFor("day"), "Meditate 10 minutes", true, ""), { source: "habit", habit_id: "demo-h-1" })
   ];
   const week = [
-    mk("week", periodFor("week"), "Ship the v2 dashboard redesign", false, "Waiting on final copy from marketing before polishing empty states."),
+    mk("week", periodFor("week"), "Send five thoughtful applications", false, "Prioritize fit over volume."),
     mk("week", periodFor("week"), "Book dentist follow-up", true, ""),
     mk("week", periodFor("week"), "Read two chapters of Deep Work", false, "")
   ];
   const month = [
-    mk("month", periodFor("month"), "Close out the Q3 planning doc", false, ""),
+    mk("month", periodFor("month"), "Build an interview pipeline", false, ""),
     mk("month", periodFor("month"), "Hit 12 workouts this month", false, "6 down, 6 to go — mostly running + one lift day/week."),
     mk("month", periodFor("month"), "Launch the referral program", true, "")
   ];
   const year = [
-    mk("year", periodFor("year"), "Grow the business to 7 figures", false, "The north star. Break into quarterly revenue targets."),
+    mk("year", periodFor("year"), "Land a product role I am excited about", false, "Find a team and problem that fit the next chapter."),
     mk("year", periodFor("year"), "Run a half marathon", false, ""),
     mk("year", periodFor("year"), "Read 24 books", false, "9 so far.")
   ];
-  return { day, week, month, year };
+  const tomorrow = [Object.assign(mk("day", tomorrowPeriod(), "Reach out to a design lead", false, "Ask about the team's current product challenges."), { estimate_min: 20 })];
+  return { day, tomorrow, week, month, year };
 }
 
 function demoHabits() {
@@ -2189,6 +2388,7 @@ function demoHabits() {
 async function boot() {
   if (booted) return;
   booted = true;
+  const scope = captureSession();
   if (DEMO) {
     // Preserve goals added during the guided-onboarding demo instead of
     // clobbering them with the canned sample board.
@@ -2196,8 +2396,8 @@ async function boot() {
     if (!hasOnboardingGoals) {
       state = demoData();
       const sparse = new URLSearchParams(location.search).get("sparse");
-      if (sparse === "all") state = { day: [], week: [], month: [], year: [] };
-      else if (sparse) state = { day: [], week: [], month: [], year: state.year.slice(0, 2) };
+      if (sparse === "all") state = { day: [], tomorrow: [], week: [], month: [], year: [] };
+      else if (sparse) state = { day: [], tomorrow: [], week: [], month: [], year: state.year.slice(0, 2) };
       Object.keys(state).forEach(k => state[k].forEach((t, i) => { t.position = i; }));
     }
     // last_complete = yesterday so clearing Today actually advances the demo streak
@@ -2207,9 +2407,15 @@ async function boot() {
     document.getElementById("name-input").value = profile.display_name;
     habits = demoHabits();
   } else {
-    await loadBoard();
+    if (!await loadBoard(scope)) { if (sessionCurrent(scope)) booted = false; return; }
+    if (!sessionCurrent(scope)) return;
     await loadHabits();
   }
+  if (!sessionCurrent(scope)) return;
+  if (DEMO) loadedBoardDate = periodFor("day");
+  state.tomorrow ||= [];
+  workspace?.destroy();
+  workspace = createWorkspace({ getState: () => state, getProfile: () => profile, demo: DEMO, today: () => loadedBoardDate, ensureBoardDay, addGoal, moveTask, editTask, toggleGoal, toast, setTab, onFocusSaved: () => { insightsLoaded = false; } });
   renderChrome();
   renderBoard();
   renderHabits();
